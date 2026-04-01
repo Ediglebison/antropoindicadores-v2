@@ -1,0 +1,197 @@
+.collection-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.back-btn:hover {
+  background: var(--bg-input);
+  color: var(--text-title);
+}
+
+.question-block {
+  background: var(--bg-card);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.question-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-title);
+  margin-bottom: 1rem;
+  display: block;
+}
+
+/* --- Estilo para a Escala de 1 a 5 (Circular) --- */
+.scale-container {
+  display: flex;
+  gap: 15px; /* Espaço entre as bolinhas */
+  flex-wrap: wrap;
+  justify-content: center; /* Centraliza as opções na tela */
+  margin-top: 10px;
+}
+
+.scale-label {
+  /* Força largura e altura iguais para fazer um quadrado perfeito */
+  width: 50px; 
+  height: 50px; 
+  
+  /* Flexbox para centralizar o número bem no meio */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+  background: var(--bg-input, #f3f4f6);
+  border: 2px solid transparent;
+  
+  /* A MÁGICA DO CÍRCULO: Arredonda as bordas em 50% */
+  border-radius: 50%; 
+  
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--text-body, #4b5563);
+  transition: all 0.2s ease-in-out;
+  user-select: none;
+}
+
+.scale-label input[type="radio"] {
+  display: none; /* Mantém a bolinha feia do HTML escondida */
+}
+
+/* Quando o pesquisador seleciona o número */
+.scale-label.selected {
+  background: #eff6ff; /* Fundo azul clarinho */
+  border-color: var(--primary-color, #2563eb); /* Borda azul forte */
+  color: var(--primary-color, #2563eb);
+  
+  /* Dá um efeito de "zoom" no botão selecionado, destacando-o */
+  transform: scale(1.15); 
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2); /* Sombreado elegante */
+}
+
+/* Efeito ao passar o mouse (ou dedo) por cima */
+.scale-label:hover:not(.selected) {
+  background: #e2e8f0;
+  transform: scale(1.05);
+}
+
+/* --- ESCALA EM FORMATO DE PIZZA (Pie Menu - 5 opções) --- */
+.pizza-container {
+  position: relative;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  margin: 20px auto;
+  
+  /* Corta as pontas do triângulo formando a borda arredondada da pizza */
+  overflow: hidden; 
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  
+  /* O Fundo Branco é o que vai aparecer nas frestas (divisões) */
+  background: #ffffff; 
+  border: 6px solid #ffffff; /* Cria a crosta externa */
+}
+
+/* O contêiner da fatia apenas gira na posição correta */
+.pizza-slice {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Permite que o clique passe direto para a cor da fatia */
+}
+
+.slice-1 { transform: rotate(0deg); }
+.slice-2 { transform: rotate(72deg); }
+.slice-3 { transform: rotate(144deg); }
+.slice-4 { transform: rotate(216deg); }
+.slice-5 { transform: rotate(288deg); }
+
+.pizza-slice input[type="radio"] {
+  display: none;
+}
+
+/* O conteúdo (cor) é recortado matematicamente */
+.pizza-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  
+  /* A MÁGICA AQUI: O valor 84% e 16% cria a fatia deixando exatamente 
+     um pequeno espaço vazio de cada lado, formando as frestas iguais! */
+  clip-path: polygon(50% 50%, 84% 0%, 16% 0%);
+  
+  background: #f1f5f9;
+  cursor: pointer;
+  pointer-events: auto; /* Reativa o clique para o botão funcionar */
+  transition: all 0.2s ease;
+}
+
+.pizza-content:hover {
+  background: #e2e8f0;
+}
+
+.pizza-content.selected {
+  background: var(--primary-color, #2563eb);
+}
+
+/* Posicionamento do Número */
+.pizza-number {
+  position: absolute;
+  top: 15%; /* Distância do número para a borda externa */
+  left: 50%;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #64748b;
+}
+
+.pizza-content.selected .pizza-number {
+  color: #ffffff;
+}
+
+/* Rotação reversa: Desfaz os graus da fatia para que o número fique sempre em pé */
+.slice-1 .pizza-number { transform: translateX(-50%) rotate(0deg); }
+.slice-2 .pizza-number { transform: translateX(-50%) rotate(-72deg); }
+.slice-3 .pizza-number { transform: translateX(-50%) rotate(-144deg); }
+.slice-4 .pizza-number { transform: translateX(-50%) rotate(-216deg); }
+.slice-5 .pizza-number { transform: translateX(-50%) rotate(-288deg); }
+
+/* Radio buttons normais (Sim/Não) */
+.radio-group {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+}

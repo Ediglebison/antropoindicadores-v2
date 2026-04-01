@@ -1,0 +1,160 @@
+/* --- LAYOUT BASE (DESKTOP) --- */
+.layout-wrapper {
+  display: flex;
+  height: 100vh; /* Trava a altura exata da tela do monitor */
+  overflow: hidden; /* Impede que a tela inteira crie uma barra de rolagem */
+  background-color: var(--bg-background, #f3f4f6);
+  position: relative;
+}
+
+/* O Cabeçalho Mobile fica escondido no Desktop */
+.mobile-header {
+  display: none; 
+}
+
+/* O fundo escuro fica escondido no Desktop */
+.sidebar-overlay {
+  display: none; 
+}
+
+/* Sidebar no Desktop (Fixa e Aberta) */
+.sidebar {
+  width: 260px;
+  height: 100vh; 
+  overflow: hidden; 
+  background-color: #ffffff;
+  border-right: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease-in-out;
+  z-index: 50;
+}
+
+.sidebar-header {
+  padding: 2rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mobile-only {
+  display: none;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0 1rem;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  text-decoration: none;
+  color: #4b5563;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.nav-item:hover, .nav-item.active {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+.logout-btn {
+  margin-top: auto;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-family: inherit;
+}
+
+.main-content {
+  flex: 1;
+  padding: 2rem;
+  height: 100vh; 
+  overflow-y: auto; 
+}
+
+/* =========================================
+   RESPONSIVIDADE (CELULARES E TABLETS)
+   Tudo abaixo só ativa em telas menores que 768px
+   ========================================= */
+@media (max-width: 768px) {
+  
+  /* Altera a direção para permitir o cabeçalho no topo */
+  .layout-wrapper {
+    flex-direction: column;
+  }
+
+  /* Exibe e estiliza o cabeçalho superior (Topbar) */
+  .mobile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    z-index: 40;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  }
+
+  .menu-btn {
+    background: none;
+    border: none;
+    color: #4b5563;
+    cursor: pointer;
+    display: flex;
+  }
+
+  /* Ajusta o conteúdo para não ficar escondido atrás do cabeçalho */
+  .main-content {
+    padding-top: 5rem; /* Espaço para o header */
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Esconde a Sidebar jogando-a para fora da tela na esquerda (-100%) */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    transform: translateX(-100%);
+    box-shadow: 4px 0 15px rgba(0,0,0,0.1); /* Dá um efeito de sombra na borda */
+  }
+
+  /* Quando o estado React muda para 'open', traz a sidebar de volta */
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* Exibe o X para fechar dentro da sidebar */
+  .mobile-only {
+    display: block;
+    background: none;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+  }
+
+  /* Exibe o fundo escuro transparente ao abrir o menu */
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 45; /* Fica acima do conteúdo, mas abaixo do menu (50) */
+  }
+}
