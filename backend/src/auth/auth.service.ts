@@ -22,7 +22,6 @@ export class AuthService {
     return null;
   }
 
-  // Passo 2: Gera o Token JWT
   async login(user: any) {
     const payload = { 
       username: user.access_code, 

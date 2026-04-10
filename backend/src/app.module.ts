@@ -7,13 +7,15 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { User } from './users/user.entity';
-import { Location } from './locations/location.entity';
-import { Survey } from './surveys/survey.entity';
+import { Location } from './locations/entities/location.entity';
+import { Survey } from './surveys/entities/survey.entity';
 import { LocationsModule } from './locations/locations.module';
 import { ResponsesModule } from './responses/responses.module'
 
-import { Response } from './responses/response.entity';
+import { Response } from './responses/entities/response.entity';
 import { SurveysModule } from './surveys/surveys.module';
+
+import { SyncModule } from './sync/sync.module';
 
 @Module({
   imports: [
@@ -25,14 +27,15 @@ import { SurveysModule } from './surveys/surveys.module';
       username: process.env.DB_USER,
       password: process.env.DB_PASS,
       database: process.env.DB_NAME,
-      entities: [User, Location, Survey, Response],
+      entities: [User, Location, Survey, Response],autoLoadEntities: true,
       synchronize: true,
     }), 
     UsersModule,
     AuthModule,
     SurveysModule,
     LocationsModule,
-    ResponsesModule
+    ResponsesModule,
+    SyncModule
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -66,10 +66,10 @@ export function SurveyBuilder() {
 
   // ATUALIZADO: Preenche o formulário e salva o ID para edição
   function handleEdit(survey: Survey) {
-    setEditingId(survey.id); // Salva o ID para sabermos que é uma atualização
+    setEditingId(survey.id);
     setTitle(survey.title);
     setDescription(survey.description);
-    setQuestions(survey.questions_schema);
+    setQuestions(survey.questions_schema || [{ id: Date.now().toString(), type: 'text', label: '' }]);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -247,7 +247,7 @@ export function SurveyBuilder() {
                     <h4 style={{ margin: '0 0 0.5rem 0' }}>{survey.title}</h4>
                     <p style={{ margin: '0 0 0.5rem 0', color: '#64748b', fontSize: '0.9rem' }}>{survey.description || 'Sem descrição definida.'}</p>
                     <small style={{ color: '#94a3b8' }}>
-                        {survey.questions_schema.length} perguntas • Criado em {new Date(survey.created_at).toLocaleDateString()}
+                        {(survey.questions_schema || []).length} perguntas • Criado em {new Date(survey.created_at).toLocaleDateString()}
                     </small>
                 </div>
                 

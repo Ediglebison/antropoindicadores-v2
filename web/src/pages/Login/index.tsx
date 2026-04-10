@@ -67,7 +67,7 @@ export function Login() {
               type="text" 
               placeholder="Digite seu código"
               value={accessCode}
-              onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
+              onChange={(e) => setAccessCode(e.target.value)}
               required
             />
           </div>

@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Survey } from './survey.entity';
+import { Survey } from './entities/survey.entity';
 import { CreateSurveyDto } from './dto/create-survey.dto';
 
 @Injectable()
@@ -44,14 +44,17 @@ export class SurveysService {
 
   // Atualiza um questionário existente (PUT)
   async update(id: string, updateData: CreateSurveyDto): Promise<Survey> {
-    // O TypeORM faz o update direto pela ID
-    await this.surveysRepository.update(id, updateData);
-    
-    // Retorna o objeto atualizado para o frontend
-    const updatedSurvey = await this.findOne(id);
-    if (!updatedSurvey) {
+    // Verifica se o questionário existe
+    const survey = await this.findOne(id);
+    if (!survey) {
       throw new NotFoundException(`Questionário com ID ${id} não encontrado.`);
     }
+
+    // Atualiza apenas os campos que vieram (merge)
+    const updated = Object.assign(survey, updateData);
+    
+    // Salva a entidade atualizada
+    const updatedSurvey = await this.surveysRepository.save(updated);
     return updatedSurvey;
   }
 

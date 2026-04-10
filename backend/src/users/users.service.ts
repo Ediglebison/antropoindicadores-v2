@@ -1,7 +1,7 @@
 import { Injectable, ConflictException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from './user.entity';
+import { User, UserRole } from './user.entity';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -11,8 +11,28 @@ export class UsersService {
     private usersRepository: Repository<User>,
   ) {}
 
+  async hashPassword(password: string): Promise<string> {
+    const salt = await bcrypt.genSalt();
+    return await bcrypt.hash(password, salt);
+  }
+
+  async createAdminBypass(body: any) {
+    const saltOrRounds = 10;
+    const hashedPassword = await bcrypt.hash(body.password, saltOrRounds);
+
+    const novoAdmin = this.usersRepository.create({
+      name: body.name,
+      access_code: body.access_code.toUpperCase(),
+      password_hash: hashedPassword,
+      role: UserRole.ADMIN,
+    });
+
+    return await this.usersRepository.save(novoAdmin);
+  }
+
   async findOneByCode(access_code: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { access_code } });
+    // Normaliza para maiúsculas antes de buscar
+    return this.usersRepository.findOne({ where: { access_code: access_code.toUpperCase() } });
   }
 
   async findOneById(id: string): Promise<User | null> {
@@ -23,17 +43,19 @@ export class UsersService {
     return this.usersRepository.find();
   }
 
-  // --- CORREÇÃO IMPORTANTE AQUI ---
   async create(data: Partial<User>): Promise<User> {
     try {
+      // Normaliza o access_code para maiúsculas
+      if (data.access_code) {
+        data.access_code = data.access_code.toUpperCase();
+      }
+      
       const newUser = this.usersRepository.create(data);
       return await this.usersRepository.save(newUser);
     } catch (error) {
-      // Se o erro for de duplicidade (código 23505 no Postgres)
       if (error.code === '23505') {
         throw new ConflictException('Este código de acesso já está em uso.');
       }
-      // Outros erros (ex: coluna não existe)
       console.error("Erro ao salvar usuário:", error);
       throw new InternalServerErrorException('Erro ao salvar no banco de dados.');
     }
@@ -46,7 +68,6 @@ export class UsersService {
   async update(id: string, data: any): Promise<User> {
     const user = await this.findOneById(id);
     
-    // 1. Verifica se existe antes de tentar atualizar
     if (!user) {
       throw new Error('Usuário não encontrado');
     }
@@ -56,7 +77,6 @@ export class UsersService {
       data.password_hash = await bcrypt.hash(data.password, salt);
     }
     
-    // Removemos o campo 'password' puro do objeto para não salvar texto plano
     delete data.password;
 
     // Atualiza
@@ -65,9 +85,6 @@ export class UsersService {
     // 2. Busca o usuário atualizado
     const updatedUser = await this.findOneById(id);
 
-    // 3. CORREÇÃO DO ERRO:
-    // Se por algum motivo bizarro o usuário sumiu (null), lançamos erro.
-    // Isso satisfaz o TypeScript que exige um "User" e não "User | null".
     if (!updatedUser) {
         throw new Error('Erro ao recuperar usuário após atualização.');
     }

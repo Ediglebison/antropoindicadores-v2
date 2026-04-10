@@ -1,24 +1,60 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+// app/_layout.tsx
 import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Storage } from '../src/utils/storage';
+import { MenuProvider } from '../src/context/MenuContext';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+export default function Layout() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+  useEffect(() => {
+    checkAuth();
+  }, []);
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  async function checkAuth() {
+    try {
+      const token = await Storage.getItem('auth_token');
+      setIsLoggedIn(!!token);
+    } catch (error) {
+      console.error('Erro ao verificar autenticação:', error);
+      setIsLoggedIn(false);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8fafc' }}>
+        <ActivityIndicator size="large" color="#0056b3" />
+      </View>
+    );
+  }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <MenuProvider>
+        <Stack 
+          initialRouteName={isLoggedIn ? 'dashboard' : '(auth)/login'}
+          screenOptions={{ headerShown: false }}
+        >
+          {!isLoggedIn ? (
+            <Stack.Screen
+              name="(auth)/login"
+              options={{
+                headerShown: false
+              }}
+            />
+          ) : (
+            <>
+              
+            </>
+          )}
+        </Stack>
+      </MenuProvider>
+    </SafeAreaProvider>
   );
 }

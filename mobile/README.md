@@ -2,6 +2,16 @@
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
+## Configuration
+
+1. Create a `.env.local` file in the mobile directory:
+
+   ```bash
+   EXPO_PUBLIC_API_URL=http://192.168.1.7:3000
+   ```
+
+   Update the IP address and port to match your backend API server.
+
 ## Get started
 
 1. Install dependencies
@@ -24,6 +34,29 @@ In the output, you'll find options to open the app in a
 - [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+
+## Features
+
+### Survey Collection (Coleta de Pesquisa)
+
+The app includes a comprehensive survey collection feature that allows researchers to:
+
+1. **Login**: Authenticate with your access code and password
+2. **Select Location**: Choose the site/location where the survey will be conducted
+3. **Select Survey**: Pick the questionnaire to apply
+4. **Answer Questions**: Respond to various question types:
+   - Text input
+   - Numeric input
+   - Multiple choice (select)
+   - Boolean (Yes/No)
+   - Likert scale (1-5)
+5. **Submit**: Send responses to the backend API
+
+### Navigation
+
+- **Pesquisas Tab**: Main entry point for starting a survey collection
+- **Modal Screen**: The survey collection interface opens as a modal from the Pesquisas tab
+- **Login Screen**: Automatic authentication check with redirect to login if needed
 
 ## Get a fresh project
 

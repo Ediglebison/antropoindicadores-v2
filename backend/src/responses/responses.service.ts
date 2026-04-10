@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Response } from './response.entity';
+import { Response } from './entities/response.entity';
 import { CreateResponseDto } from './dto/create-response.dto';
 
 @Injectable()
@@ -12,12 +12,12 @@ export class ResponsesService {
   ) {}
 
   async create(createResponseDto: CreateResponseDto, researcherId: string): Promise<Response> {
-    // Aqui fazemos a correspondência entre o que vem do Front e as colunas reais do Banco
     const newResponse = this.responsesRepository.create({
-      data_payload: createResponseDto.answers_json, // O front manda 'answers_json', o banco salva como 'data_payload'
-      survey: { id: createResponseDto.survey_id },
-      location: { id: createResponseDto.location_id },
-      researcher: { id: researcherId }
+      id: Date.now().toString(), // Gera ID com timestamp
+      data_payload: createResponseDto.answers_json,
+      survey_id: createResponseDto.survey_id,
+      location_id: createResponseDto.location_id,
+      researcher_id: researcherId
     });
     
     return await this.responsesRepository.save(newResponse);

@@ -8,21 +8,17 @@ export class RolesGuard extends AuthGuard('jwt') implements CanActivate {
     super();
   }
 
-  // MUDANÇA 1: Adicionamos 'async' e 'Promise<boolean>'
   async canActivate(context: ExecutionContext): Promise<boolean> {
     
-    // MUDANÇA 2: Verificamos se a rota exige alguma role específica
     const requiredRoles = this.reflector.getAllAndOverride<string[]>('roles', [
       context.getHandler(),
       context.getClass(),
     ]);
 
-    // Se a rota não exige roles, executamos apenas o AuthGuard padrão (validar token)
     if (!requiredRoles) {
       return super.canActivate(context) as Promise<boolean>;
     }
 
-    // MUDANÇA 3: Usamos 'await' para esperar o AuthGuard validar o token primeiro
     const canActivate = await super.canActivate(context);
     
     if (!canActivate) {

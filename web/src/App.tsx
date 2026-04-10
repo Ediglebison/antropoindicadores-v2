@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import Home from './pages/Home';
 import { Login } from './pages/Login';
 import { DashboardLayout } from './components/Layout';
 import { SurveyBuilder } from './pages/Surveys/SurveyBuilder';
@@ -9,10 +10,6 @@ import { Responses } from './pages/Responses';
 import { Dashboard } from './pages/Dashboard';
 
 import type { JSX } from 'react/jsx-dev-runtime';
-
-function Home() {
-  return <h1>Bem-vindo ao Painel Antropoindicadores</h1>;
-}
 
 // Proteção de Rota Básica (Apenas verifica se tem o token de login)
 function PrivateRoute({ children }: { children: JSX.Element }) {
@@ -48,13 +45,13 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
 
         {/* Todas as rotas aqui dentro terão o Menu Lateral e exigem estar logado */}
         <Route element={<PrivateRoute><DashboardLayout /></PrivateRoute>}>
           
           {/* ROTAS LIVRES (Pesquisadores comuns e Administradores acessam) */}
-          <Route path="/home" element={<Home />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/collection" element={<Collection />} />
           <Route path="/responses" element={<Responses />} />
