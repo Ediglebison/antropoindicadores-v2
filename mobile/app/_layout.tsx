@@ -1,30 +1,61 @@
-// app/_layout.tsx
-import { Stack } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Storage } from '../src/utils/storage';
 import { MenuProvider } from '../src/context/MenuContext';
+import { syncData } from '../src/database/sync';
 
 export default function Layout() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+  const segments = useSegments();
 
+  // 1. Roda apenas uma vez para tirar a tela de loading inicial e tentar o sync
   useEffect(() => {
-    checkAuth();
+    setIsLoading(false);
+
+    // Tenta sincronizar os dados em background (silenciosamente) na inicialização
+    const attemptSync = async () => {
+      const token = await Storage.getItem('auth_token');
+      if (token) {
+        try {
+          console.log('🔄 Iniciando sincronização em background...');
+          await syncData();
+          console.log('✅ Sincronização inicial concluída com sucesso.');
+        } catch (error: any) {
+          console.log('⚠️ Sincronização inicial pulada ou falhou:', error.message);
+        }
+      }
+    };
+    attemptSync();
   }, []);
 
-  async function checkAuth() {
-    try {
+  // 2. O Porteiro Inteligente: Roda toda vez que a tela muda (segments)
+  useEffect(() => {
+    if (isLoading) return;
+
+    const checkRoute = async () => {
+      // Busca a verdade direto do Storage e não de um state antigo!
       const token = await Storage.getItem('auth_token');
-      setIsLoggedIn(!!token);
-    } catch (error) {
-      console.error('Erro ao verificar autenticação:', error);
-      setIsLoggedIn(false);
-    } finally {
-      setIsLoading(false);
-    }
-  }
+      const isUserLoggedIn = !!token; // Retorna true se tiver token, false se não tiver
+
+      const inAuthGroup = segments[0] === '(auth)';
+      const isRoot = segments.length === 0 || (segments.length === 1 && segments[0] === 'index');
+
+      if (!isUserLoggedIn && !inAuthGroup) {
+        // Sem crachá e tentando ver o painel? Vai pro login!
+        router.replace('/(auth)/login');
+      } else if (isUserLoggedIn) {
+        // Com crachá e tentando ver o login? Vai pro dashboard!
+        if (inAuthGroup || isRoot) {
+          router.replace('/dashboard');
+        }
+      }
+    };
+
+    checkRoute();
+  }, [segments, isLoading]);
 
   if (isLoading) {
     return (
@@ -37,23 +68,7 @@ export default function Layout() {
   return (
     <SafeAreaProvider>
       <MenuProvider>
-        <Stack 
-          initialRouteName={isLoggedIn ? 'dashboard' : '(auth)/login'}
-          screenOptions={{ headerShown: false }}
-        >
-          {!isLoggedIn ? (
-            <Stack.Screen
-              name="(auth)/login"
-              options={{
-                headerShown: false
-              }}
-            />
-          ) : (
-            <>
-              
-            </>
-          )}
-        </Stack>
+        <Stack screenOptions={{ headerShown: false }} />
       </MenuProvider>
     </SafeAreaProvider>
   );

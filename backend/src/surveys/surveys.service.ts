@@ -43,19 +43,11 @@ export class SurveysService {
   // ==========================================
 
   // Atualiza um questionário existente (PUT)
-  async update(id: string, updateData: CreateSurveyDto): Promise<Survey> {
-    // Verifica se o questionário existe
-    const survey = await this.findOne(id);
-    if (!survey) {
-      throw new NotFoundException(`Questionário com ID ${id} não encontrado.`);
-    }
-
-    // Atualiza apenas os campos que vieram (merge)
-    const updated = Object.assign(survey, updateData);
-    
-    // Salva a entidade atualizada
-    const updatedSurvey = await this.surveysRepository.save(updated);
-    return updatedSurvey;
+  async update(id: string, updateSurveyDto: any) {
+    // Encontra o questionário pelo ID e atualiza com os dados novos
+    await this.surveysRepository.update(id, updateSurveyDto);
+    // Retorna o questionário atualizado
+    return this.surveysRepository.findOne({ where: { id } });
   }
 
   // Exclui um questionário definitivamente (DELETE)

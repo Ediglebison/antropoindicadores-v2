@@ -36,10 +36,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingBottom: 12,
-    backgroundColor: '#fff',
+    paddingBottom: 16,
+    backgroundColor: '#0f172a',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: '#1e293b',
   },
   menuBtn: {
     padding: 8,
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
   },
   menuIcon: {
     fontSize: 24,
-    color: '#1a1a1a',
+    color: '#f8fafc',
   },
   titleContainer: {
     flex: 1,
@@ -58,11 +58,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: '#f8fafc',
   },
   subtitle: {
-    fontSize: 12,
-    color: '#666',
+    fontSize: 13,
+    color: '#94a3b8',
     marginTop: 2,
   },
 });

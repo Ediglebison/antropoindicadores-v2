@@ -1,7 +1,7 @@
 import { appSchema, tableSchema } from '@nozbe/watermelondb'
 
 export const mySchema = appSchema({
-  version: 1,
+  version: 2, // Incremented version to force database recreation
   tables: [
     // TABELA 1: Os Questionários (Templates)
     tableSchema({
@@ -9,7 +9,6 @@ export const mySchema = appSchema({
       columns: [
         { name: 'title', type: 'string' },
         { name: 'description', type: 'string', isOptional: true },
-        // O JSON do formulário precisa ser salvo como string no SQLite
         { name: 'questions_schema', type: 'string', isOptional: true }, 
         { name: 'is_active', type: 'boolean' },
         { name: 'created_at', type: 'number' },
@@ -22,7 +21,10 @@ export const mySchema = appSchema({
       name: 'locations',
       columns: [
         { name: 'name', type: 'string' },
-        // Adicione outras colunas de location que você tiver no backend (ex: latitude, longitude)
+        { name: 'unique_code', type: 'string', isOptional: true },
+        { name: 'city', type: 'string', isOptional: true },
+        { name: 'state', type: 'string', isOptional: true },
+        { name: 'description', type: 'string', isOptional: true },
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ]
@@ -34,7 +36,6 @@ export const mySchema = appSchema({
       columns: [
         { name: 'survey_id', type: 'string', isIndexed: true },
         { name: 'location_id', type: 'string', isIndexed: true },
-        // Aqui vai o JSON com as respostas que o usuário digitou
         { name: 'data_payload', type: 'string' }, 
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },

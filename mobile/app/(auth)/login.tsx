@@ -37,13 +37,33 @@ export default function LoginScreen() {
 
     setLoginLoading(true);
     try {
-      await authAPI.login(accessCode, password);
+      // 1. Capturamos a resposta que volta do seu backend
+      const response = await authAPI.login(accessCode, password);
+      
+      // 2. 👉 AS LINHAS NOVAS ENTRAM AQUI!
+      // Guardamos o token para manter logado e os dados do usuário (com a Permissão)
+      if (response.token) {
+        await Storage.setItem('auth_token', response.token);
+      }
+      if (response.user) {
+        await Storage.setItem('user', JSON.stringify(response.user));
+      }
+
       Alert.alert('Sucesso!', 'Login realizado');
       router.replace('/dashboard' as any);
+      
     } catch (error: any) {
       console.error(error);
-      const message = error.response?.data?.message || 'Falha na autenticação';
-      Alert.alert('Erro', message);
+      const isNetworkError = !error.response && error.request;
+      
+      // MENSAGEM DE DEPURAÇÃO (Aparece a URL que o celular tá tentando acessar)
+      const urlTentada = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.7:3000';
+      
+      const message = isNetworkError 
+        ? `Erro de Conexão com ${urlTentada}.\n\nVerifique se o celular está na MESMA rede Wi-Fi do computador e se o Firewall do Windows não está bloqueando o acesso à porta 3000.`
+        : error.response?.data?.message || 'Falha na autenticação';
+      
+      Alert.alert('Erro no Login', message);
     } finally {
       setLoginLoading(false);
     }

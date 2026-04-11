@@ -30,8 +30,8 @@ export class SurveysController {
 
   // ROTA: PUT http://localhost:3000/surveys/:id
   @UseGuards(AuthGuard('jwt'))
-  @Put(':id')
-  update(@Param('id') id: string, @Body() updateData: CreateSurveyDto) {
+  @Patch(':id') // 👈 O segredo é usar Patch!
+  update(@Param('id') id: string, @Body() updateData: any) {
     return this.surveysService.update(id, updateData);
   }
 

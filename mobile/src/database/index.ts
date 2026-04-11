@@ -36,7 +36,7 @@ if (Platform.OS !== 'web') {
     
     console.log('✅ WatermelonDB initialized successfully (native only)')
   } catch (error) {
-    console.warn('⚠️ Failed to initialize WatermelonDB:', error)
+    console.log('⚠️ WatermelonDB desativado (Se estiver usando Expo Go, o WatermelonDB não é suportado).')
     database = null
   }
 } else {

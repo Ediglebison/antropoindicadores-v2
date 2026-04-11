@@ -4,10 +4,10 @@
     "slug": "antropo-mobile",
     "version": "1.0.1",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/favicon.png",
     "scheme": "mobile",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
       "supportsTablet": true
     },
@@ -27,10 +27,12 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      "@morrowdigital/watermelondb-expo-plugin",
       [
         "expo-build-properties",
         {
           "android": {
+            "usesCleartextTraffic": true,
             "packagingOptions": {
               "pickFirst": ["**/libc++_shared.so"]
             }

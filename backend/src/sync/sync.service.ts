@@ -20,11 +20,43 @@ export class SyncService {
     private responseRepository: Repository<Response>,
   ) {}
 
-  // ==========================================
+    // ==========================================
   // PULL: O SERVIDOR ENVIA QUESTIONÁRIOS E LOCAIS
   // ==========================================
   async pullChanges(lastPulledAt: number) {
     const lastPullDate = new Date(lastPulledAt);
+
+    // Formatadores obrigatórios para o WatermelonDB entender!
+    // WatermelonDB exige Datas como NÚMEROS (Unix Timestamp) e JSON como TEXTO (String)
+    const formatSurvey = (s: any) => {
+      let schemaStr = '';
+      if (s.questions_schema) {
+         schemaStr = typeof s.questions_schema === 'string' 
+           ? s.questions_schema 
+           : JSON.stringify(s.questions_schema);
+      }
+      
+      return {
+        id: s.id,
+        title: s.title,
+        description: s.description || '',
+        is_active: s.is_active,
+        questions_schema: schemaStr,
+        created_at: new Date(s.created_at).getTime(),
+        updated_at: new Date(s.updated_at).getTime()
+      };
+    };
+
+    const formatLocation = (l: any) => ({
+      id: l.id,
+      name: l.name,
+      unique_code: l.unique_code || '',
+      city: l.city || '',
+      state: l.state || '',
+      description: l.description || '',
+      created_at: new Date(l.created_at).getTime(),
+      updated_at: new Date(l.updated_at).getTime()
+    });
 
     // 1. Prepara os Questionários (Surveys)
     const surveysAlterados = await this.surveyRepository.find({
@@ -34,10 +66,12 @@ export class SyncService {
     const surveysUpdated: any[] = [];
     
     surveysAlterados.forEach(survey => {
-      if (survey.created_at.getTime() > lastPulledAt) {
-        surveysCreated.push(survey);
+      const formatted = formatSurvey(survey);
+      // Se a data de criação for mais recente que o último PULL, é novo!
+      if (new Date(survey.created_at).getTime() > lastPulledAt) {
+        surveysCreated.push(formatted);
       } else {
-        surveysUpdated.push(survey);
+        surveysUpdated.push(formatted);
       }
     });
 
@@ -49,10 +83,11 @@ export class SyncService {
     const locationsUpdated: any[] = [];
     
     locationsAlterados.forEach(location => {
-      if (location.created_at.getTime() > lastPulledAt) {
-        locationsCreated.push(location);
+      const formatted = formatLocation(location);
+      if (new Date(location.created_at).getTime() > lastPulledAt) {
+        locationsCreated.push(formatted);
       } else {
-        locationsUpdated.push(location);
+        locationsUpdated.push(formatted);
       }
     });
 
