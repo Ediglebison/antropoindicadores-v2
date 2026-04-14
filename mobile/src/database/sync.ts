@@ -5,7 +5,7 @@ import { Storage } from '../utils/storage';
 // Lê a URL do arquivo .env
 const BACKEND_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.7:3000';
 
-export async function syncData() {
+export async function syncData(onProgress?: (status: string) => void) {
   // Verificar se o database está disponível (só em plataformas nativas)
   if (!database) {
     throw new Error('WatermelonDB não está disponível nesta plataforma. Sincronização offline desabilitada.');
@@ -14,10 +14,13 @@ export async function syncData() {
   try {
     const token = await Storage.getItem('auth_token');
 
+    if (onProgress) onProgress('Iniciando sincronização...');
+
     await synchronize({
       database,
       // 1. O CELULAR PUXA OS DADOS DO SERVIDOR
       pullChanges: async ({ lastPulledAt }) => {
+        if (onProgress) onProgress('Baixando dados do servidor...');
         const timestamp = lastPulledAt || 0;
         
         const response = await fetch(`${BACKEND_URL}/sync?lastPulledAt=${timestamp}`, {
@@ -34,6 +37,7 @@ export async function syncData() {
 
       // 2. O CELULAR EMPURRA OS DADOS PARA O SERVIDOR
       pushChanges: async ({ changes, lastPulledAt }) => {
+        if (onProgress) onProgress('Enviando dados para o servidor...');
         const timestamp = lastPulledAt || 0;
         
         // ADICIONE ESTA LINHA PARA TESTE:
@@ -57,6 +61,7 @@ export async function syncData() {
       // migrationsEnabledAtVersion: 1, 
     });
     
+    if (onProgress) onProgress('Sincronização concluída com sucesso!');
     return true; // Retorna sucesso
   } catch (error) {
     console.error('Falha na sincronização:', error);

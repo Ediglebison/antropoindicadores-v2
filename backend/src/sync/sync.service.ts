@@ -6,6 +6,7 @@ import { Repository, MoreThan } from 'typeorm';
 import { Survey } from '../surveys/entities/survey.entity';
 import { Location } from '../locations/entities/location.entity';
 import { Response } from '../responses/entities/response.entity';
+import { User } from '../users/user.entity';
 
 @Injectable()
 export class SyncService {
@@ -18,6 +19,9 @@ export class SyncService {
     
     @InjectRepository(Response)
     private responseRepository: Repository<Response>,
+
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
   ) {}
 
     // ==========================================
@@ -58,6 +62,17 @@ export class SyncService {
       updated_at: new Date(l.updated_at).getTime()
     });
 
+    const formatUser = (u: any) => ({
+      id: u.id,
+      name: u.name,
+      access_code: u.access_code,
+      password_hash: u.password_hash,
+      role: u.role,
+      created_at: new Date(u.created_at).getTime(),
+      // Assume created_at as updated_at for now since user entity doesn't have updated_at
+      updated_at: new Date(u.created_at).getTime()
+    });
+
     // 1. Prepara os Questionários (Surveys)
     const surveysAlterados = await this.surveyRepository.find({
       where: { updated_at: MoreThan(lastPullDate) },
@@ -91,6 +106,23 @@ export class SyncService {
       }
     });
 
+    // 3. Prepara os Usuários (Users)
+    // Usuarios no momento nao possuem updated_at, usamos created_at como fallback
+    const usersAlterados = await this.userRepository.find({
+      // where: { created_at: MoreThan(lastPullDate) }, // Puxar todos os users por garantia ou apenas recentes
+    });
+    const usersCreated: any[] = [];
+    const usersUpdated: any[] = [];
+
+    usersAlterados.forEach(user => {
+      const formatted = formatUser(user);
+      if (new Date(user.created_at).getTime() > lastPulledAt) {
+        usersCreated.push(formatted);
+      } else {
+        usersUpdated.push(formatted);
+      }
+    });
+
     // Retorna o pacotão completo para o celular
     return {
       changes: {
@@ -102,6 +134,11 @@ export class SyncService {
         locations: {
           created: locationsCreated,
           updated: locationsUpdated,
+          deleted: [],
+        },
+        users: {
+          created: usersCreated,
+          updated: usersUpdated,
           deleted: [],
         },
         // O celular vai baixar pesquisas e locais, mas não precisa baixar as respostas dos outros

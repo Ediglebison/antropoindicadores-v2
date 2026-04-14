@@ -13,12 +13,13 @@ if (Platform.OS !== 'web') {
     const Survey = require('./models/Survey').default
     const Location = require('./models/Locations').default
     const Response = require('./models/Response').default
+    const User = require('./models/User').default
     
     // Configura o "Adaptador" que vai escrever fisicamente no celular
     const adapter = new SQLiteAdapter({
       schema: mySchema,
       // JSI (JavaScript Interface) é o segredo da velocidade absurda do WatermelonDB
-      jsi: true, 
+      jsi: false, 
       onSetUpError: (error: any) => {
         console.error("Falha ao inicializar o banco de dados offline", error)
       }
@@ -31,6 +32,7 @@ if (Platform.OS !== 'web') {
         Survey,
         Location, 
         Response,
+        User,
       ],
     })
     

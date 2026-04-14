@@ -4,31 +4,15 @@ import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Storage } from '../src/utils/storage';
 import { MenuProvider } from '../src/context/MenuContext';
-import { syncData } from '../src/database/sync';
 
 export default function Layout() {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const segments = useSegments();
 
-  // 1. Roda apenas uma vez para tirar a tela de loading inicial e tentar o sync
+  // 1. Tira a tela de loading inicial do layout (a Index fará o resto)
   useEffect(() => {
     setIsLoading(false);
-
-    // Tenta sincronizar os dados em background (silenciosamente) na inicialização
-    const attemptSync = async () => {
-      const token = await Storage.getItem('auth_token');
-      if (token) {
-        try {
-          console.log('🔄 Iniciando sincronização em background...');
-          await syncData();
-          console.log('✅ Sincronização inicial concluída com sucesso.');
-        } catch (error: any) {
-          console.log('⚠️ Sincronização inicial pulada ou falhou:', error.message);
-        }
-      }
-    };
-    attemptSync();
   }, []);
 
   // 2. O Porteiro Inteligente: Roda toda vez que a tela muda (segments)
@@ -40,15 +24,21 @@ export default function Layout() {
       const token = await Storage.getItem('auth_token');
       const isUserLoggedIn = !!token; // Retorna true se tiver token, false se não tiver
 
-      const inAuthGroup = segments[0] === '(auth)';
-      const isRoot = segments.length === 0 || (segments.length === 1 && segments[0] === 'index');
+      const currentSegments = segments as string[];
+      const inAuthGroup = currentSegments[0] === '(auth)';
+      const isRoot = currentSegments.length === 0 || (currentSegments.length === 1 && currentSegments[0] === 'index');
+
+      // Se estamos na tela inicial (Index), ela própria decidirá para onde ir após o sync
+      if (isRoot) {
+        return;
+      }
 
       if (!isUserLoggedIn && !inAuthGroup) {
         // Sem crachá e tentando ver o painel? Vai pro login!
         router.replace('/(auth)/login');
       } else if (isUserLoggedIn) {
         // Com crachá e tentando ver o login? Vai pro dashboard!
-        if (inAuthGroup || isRoot) {
+        if (inAuthGroup) {
           router.replace('/dashboard');
         }
       }

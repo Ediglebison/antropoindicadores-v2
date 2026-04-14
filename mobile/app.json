@@ -1,13 +1,13 @@
 {
   "expo": {
     "name": "AntropoMobile",
-    "slug": "antropo-mobile",
+    "slug": "mobile",
     "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/favicon.png",
     "scheme": "mobile",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
@@ -27,7 +27,12 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "@morrowdigital/watermelondb-expo-plugin",
+      [
+        "@morrowdigital/watermelondb-expo-plugin",
+        {
+          "disableJsi": true
+        }
+      ],
       [
         "expo-build-properties",
         {
@@ -47,7 +52,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "a40e624f-7695-4490-add4-9b9310d377d6"
+       "projectId": "d89fb2c6-36e4-4142-a1e0-5538f83131f4"
       }
     }
   }

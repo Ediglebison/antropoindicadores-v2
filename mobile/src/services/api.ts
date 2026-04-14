@@ -92,7 +92,7 @@ export const surveysAPI = {
     return response.data || [];
   },
 
-  async create(data: { title: string; description: string; is_active: boolean; questions_schema: any[] }) {
+  async create(data: { id?: string; title: string; description: string; is_active: boolean; questions_schema: any[] }) {
     const response = await api.post('/surveys', data);
     return response.data;
   },

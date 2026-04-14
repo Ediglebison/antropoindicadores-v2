@@ -3,6 +3,10 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityInd
 import { authAPI } from '../../src/services/api';
 import { router } from 'expo-router';
 import { Storage } from '../../src/utils/storage';
+import NetInfo from '@react-native-community/netinfo';
+import { database } from '../../src/database';
+import { Q } from '@nozbe/watermelondb';
+import bcrypt from 'bcryptjs';
 
 export default function LoginScreen() {
   const [accessCode, setAccessCode] = useState('');
@@ -29,6 +33,55 @@ export default function LoginScreen() {
     }
   }
 
+  async function handleOfflineLogin() {
+    try {
+      if (!database) {
+        Alert.alert('Erro', 'Banco de dados offline não disponível.');
+        return false;
+      }
+
+      // Busca o usuário pelo código de acesso (ignorando case)
+      const usersCollection = database.collections.get('users');
+      const users = await usersCollection.query(
+        Q.where('access_code', accessCode.toUpperCase())
+      ).fetch();
+
+      if (users.length === 0) {
+        Alert.alert('Erro Offline', 'Usuário não encontrado no banco de dados local. Você precisa ter feito login online ao menos uma vez antes.');
+        return false;
+      }
+
+      const user: any = users[0];
+      
+      // Valida a senha usando bcryptjs
+      const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+
+      if (!isPasswordValid) {
+        Alert.alert('Erro Offline', 'Senha incorreta.');
+        return false;
+      }
+
+      // Login offline com sucesso!
+      // Geramos um token "falso" para o sistema manter logado no offline
+      await Storage.setItem('auth_token', 'offline_token_' + user.id);
+      await Storage.setItem('user', JSON.stringify({
+        id: user.id,
+        name: user.name,
+        access_code: user.accessCode,
+        role: user.role
+      }));
+
+      Alert.alert('Modo Offline', `Bem-vindo(a) de volta, ${user.name}! (Modo Offline)`);
+      router.replace('/dashboard' as any);
+      return true;
+
+    } catch (error) {
+      console.error("Erro no login offline:", error);
+      Alert.alert('Erro Offline', 'Falha ao tentar autenticar localmente.');
+      return false;
+    }
+  }
+
   async function handleLogin() {
     if (!accessCode || !password) {
       Alert.alert('Atenção', 'Preencha código de acesso e senha');
@@ -37,13 +90,21 @@ export default function LoginScreen() {
 
     setLoginLoading(true);
     try {
-      // 1. Capturamos a resposta que volta do seu backend
+      const netInfo = await NetInfo.fetch();
+
+      // Se já sabemos que estamos sem internet, vamos direto para o Offline
+      if (!netInfo.isConnected) {
+        await handleOfflineLogin();
+        setLoginLoading(false);
+        return;
+      }
+
+      // 1. Tenta login na API
       const response = await authAPI.login(accessCode, password);
       
-      // 2. 👉 AS LINHAS NOVAS ENTRAM AQUI!
-      // Guardamos o token para manter logado e os dados do usuário (com a Permissão)
-      if (response.token) {
-        await Storage.setItem('auth_token', response.token);
+      // 2. Guardamos o token para manter logado e os dados do usuário
+      if (response.access_token) {
+        await Storage.setItem('auth_token', response.access_token);
       }
       if (response.user) {
         await Storage.setItem('user', JSON.stringify(response.user));
@@ -56,14 +117,14 @@ export default function LoginScreen() {
       console.error(error);
       const isNetworkError = !error.response && error.request;
       
-      // MENSAGEM DE DEPURAÇÃO (Aparece a URL que o celular tá tentando acessar)
-      const urlTentada = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.7:3000';
-      
-      const message = isNetworkError 
-        ? `Erro de Conexão com ${urlTentada}.\n\nVerifique se o celular está na MESMA rede Wi-Fi do computador e se o Firewall do Windows não está bloqueando o acesso à porta 3000.`
-        : error.response?.data?.message || 'Falha na autenticação';
-      
-      Alert.alert('Erro no Login', message);
+      // Se for erro de rede (servidor caiu ou wifi falhou na hora H), tentamos offline
+      if (isNetworkError) {
+        console.log("Erro de rede detectado. Tentando login offline...");
+        await handleOfflineLogin();
+      } else {
+        const message = error.response?.data?.message || 'Falha na autenticação';
+        Alert.alert('Erro no Login', message);
+      }
     } finally {
       setLoginLoading(false);
     }
