@@ -8,6 +8,7 @@ import NetInfo from '@react-native-community/netinfo';
 export default function Index() {
   const router = useRouter();
   const [status, setStatus] = useState<string>('Verificando conexão...');
+  const [progress, setProgress] = useState<number>(0);
   const [isError, setIsError] = useState<boolean>(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -30,6 +31,7 @@ export default function Index() {
         try {
           if (attempt === 1) {
             setStatus('Verificando conexão com a internet...');
+            setProgress(5);
           } else {
             setStatus(`Tentando reconectar... (Tentativa ${attempt}/${maxRetries})`);
           }
@@ -44,17 +46,21 @@ export default function Index() {
           setStatus(attempt === 1 ? 'Sincronizando dados com o servidor...' : `Sincronizando... (Tentativa ${attempt}/${maxRetries})`);
           
           // Passamos o setStatus para atualizar o andamento durante o sync
-          await syncData((progressStatus) => {
+          await syncData((progressStatus, progressValue) => {
             setStatus(progressStatus);
+            if (progressValue !== undefined) {
+              setProgress(progressValue);
+            }
           });
 
           syncSuccess = true;
           setStatus('Sincronização concluída com sucesso!');
+          setProgress(100);
           
-          // Aguarda 1 segundo para o usuário ler a mensagem de sucesso
+          // Aguarda 1.5 segundos para o usuário ler a mensagem de sucesso
           setTimeout(() => {
             proceedToNextScreen();
-          }, 1000);
+          }, 1500);
 
         } catch (error: any) {
           lastError = error;
@@ -71,6 +77,7 @@ export default function Index() {
         console.error('Erro na inicialização após tentativas:', lastError);
         setIsError(true);
         setStatus(`Aviso: ${lastError?.message || 'Falha ao conectar com o servidor.'}\n\nO aplicativo continuará em modo offline com os dados salvos.`);
+        setProgress(0);
         
         // Se der erro após as tentativas, avisar o usuário mas permitir prosseguir
         Alert.alert(
@@ -107,13 +114,19 @@ export default function Index() {
       <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
         <Text style={styles.title}>Antropoindicadores</Text>
         
-        {!isError && (
+        {!isError && progress < 100 && (
           <ActivityIndicator size="large" color="#0ea5e9" style={styles.loader} />
         )}
         
         <Text style={[styles.statusText, isError && styles.errorText]}>
           {status}
         </Text>
+
+        {!isError && (
+          <View style={styles.progressBarContainer}>
+            <View style={[styles.progressBar, { width: `${progress}%` }]} />
+          </View>
+        )}
       </Animated.View>
     </View>
   );
@@ -129,7 +142,8 @@ const styles = StyleSheet.create({
   },
   content: {
     alignItems: 'center',
-    maxWidth: '80%',
+    width: '100%',
+    maxWidth: 400,
   },
   title: {
     fontSize: 24,
@@ -146,9 +160,21 @@ const styles = StyleSheet.create({
     color: '#475569',
     textAlign: 'center',
     lineHeight: 24,
+    marginBottom: 20,
   },
   errorText: {
     color: '#ef4444',
     marginTop: 10,
+  },
+  progressBarContainer: {
+    width: '80%',
+    height: 8,
+    backgroundColor: '#e2e8f0',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: '#0ea5e9',
   },
 });

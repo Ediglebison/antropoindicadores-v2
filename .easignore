@@ -1,6 +1,8 @@
 /backend
 /web
 /node_modules
+/.git
+/.vscode
 .log
 /docs
 /mobile/android

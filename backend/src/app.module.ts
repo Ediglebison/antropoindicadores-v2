@@ -20,15 +20,32 @@ import { SyncModule } from './sync/sync.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    TypeOrmModule.forRoot({
-      type: 'postgres', 
-      host: process.env.DB_HOST, 
-      port: parseInt(process.env.DB_PORT|| '5432', 10),
-      username: process.env.DB_USER,
-      password: process.env.DB_PASS,
-      database: process.env.DB_NAME,
-      entities: [User, Location, Survey, Response],autoLoadEntities: true,
-      synchronize: true,
+    TypeOrmModule.forRootAsync({
+      useFactory: () => {
+        if (process.env.DATABASE_URL) {
+          const isFly = process.env.DATABASE_URL.includes('flycast') || process.env.DATABASE_URL.includes('internal');
+          return {
+            type: 'postgres',
+            url: process.env.DATABASE_URL,
+            ssl: isFly ? false : { rejectUnauthorized: false },
+            entities: [User, Location, Survey, Response],
+            autoLoadEntities: true,
+            synchronize: true,
+          };
+        }
+        return {
+          type: 'postgres',
+          host: process.env.DB_HOST,
+          port: parseInt(process.env.DB_PORT || '5432', 10),
+          username: process.env.DB_USER,
+          password: process.env.DB_PASS,
+          database: process.env.DB_NAME,
+          ssl: false,
+          entities: [User, Location, Survey, Response],
+          autoLoadEntities: true,
+          synchronize: true,
+        };
+      },
     }), 
     UsersModule,
     AuthModule,

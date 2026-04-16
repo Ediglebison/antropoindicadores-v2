@@ -59,7 +59,7 @@ O projeto utiliza uma arquitetura moderna baseada em microserviços e containers
 
 ### 1. Clonar e Configurar
 ```bash
-git clone [https://github.com/Ediglebison/antropoindicadores.git](https://github.com/Ediglebison/antropoindicadores.git)
+git clone [https://github.com/Ediglebison/antropoindicadores-v2.git](https://github.com/Ediglebison/antropoindicadores-v2.git)
 cd antropoindicadores
 ```
 
