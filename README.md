@@ -13,10 +13,13 @@ A ferramenta serve como suporte tecnológico para investigar as diferentes forma
 
 ## 🚀 Funcionalidades Principais
 
-### 🔐 Controle de Acesso (RBAC)
+### 🔐 Controle de Acesso e Segurança
 - **Administrador:** Acesso total ao sistema (Gestão de Usuários, Locais, Criação de Formulários).
 - **Pesquisador:** Acesso restrito (Visualização de Dashboard e Aplicação de Pesquisas).
-- **Segurança:** Autenticação via JWT (JSON Web Token) e senhas criptografadas com Bcrypt.
+- **Autenticação e Criptografia:** Autenticação via JWT (JSON Web Token) e senhas criptografadas com Bcrypt.
+- **Proteção contra Força Bruta:** Rate Limiting configurado (Throttler) para bloquear múltiplas tentativas de acesso.
+- **Proteção de Dados (Mobile):** Uso do `expo-secure-store` para armazenamento nativo criptografado de tokens e dados sensíveis em dispositivos móveis (iOS Keychain / Android Keystore).
+- **Segurança de API e Redes:** Implementação do Helmet (proteção contra XSS e Clickjacking), CORS restrito e Validação Estrita de Entradas (ValidationPipe e DTOs) em todos os endpoints.
 
 ### 📝 Gestão de Questionários Dinâmicos
 - Criação de formulários personalizados (Survey Builder).
@@ -60,7 +63,7 @@ O projeto utiliza uma arquitetura moderna baseada em microserviços e containers
 ### 1. Clonar e Configurar
 ```bash
 git clone [https://github.com/Ediglebison/antropoindicadores-v2.git](https://github.com/Ediglebison/antropoindicadores-v2.git)
-cd antropoindicadores
+cd antropoindicadores-v2
 ```
 
 ### 2. Como rodar tudo ao mesmo tempo?

@@ -52,10 +52,29 @@ const webStorageAdapter = {
 };
 
 let storageInstance: any = null;
+let secureStorageInstance: any = null;
 let initialized = false;
 
 async function initializeStorage() {
-  if (initialized) return storageInstance;
+  if (initialized) return { storageInstance, secureStorageInstance };
+
+  // Setup Secure Store for native (fallback to web/async otherwise)
+  try {
+    if (Platform.OS !== 'web') {
+      const SecureStore = require('expo-secure-store');
+      const isAvailable = await SecureStore.isAvailableAsync();
+      if (isAvailable) {
+        secureStorageInstance = {
+          getItem: async (key: string) => await SecureStore.getItemAsync(key),
+          setItem: async (key: string, value: string) => await SecureStore.setItemAsync(key, value),
+          removeItem: async (key: string) => await SecureStore.deleteItemAsync(key),
+        };
+        console.log('Storage: Using SecureStore for sensitive data');
+      }
+    }
+  } catch (error) {
+    console.log('Storage: SecureStore not available');
+  }
 
   // Tentamos AsyncStorage apenas em plataformas nativas
   try {
@@ -65,9 +84,10 @@ async function initializeStorage() {
       await AsyncStorage.setItem('__init_test__', '1');
       await AsyncStorage.removeItem('__init_test__');
       storageInstance = AsyncStorage;
+      if (!secureStorageInstance) secureStorageInstance = AsyncStorage;
       console.log('Storage: Using AsyncStorage');
       initialized = true;
-      return storageInstance;
+      return { storageInstance, secureStorageInstance };
     }
   } catch (error) {
     console.log('Storage: AsyncStorage not available');
@@ -79,9 +99,10 @@ async function initializeStorage() {
       localStorage.setItem('__init_test__', '1');
       localStorage.removeItem('__init_test__');
       storageInstance = webStorageAdapter;
+      if (!secureStorageInstance) secureStorageInstance = webStorageAdapter;
       console.log('Storage: Using Web Storage (localStorage)');
       initialized = true;
-      return storageInstance;
+      return { storageInstance, secureStorageInstance };
     }
   } catch (error) {
     console.log('Storage: Web storage not available');
@@ -90,15 +111,22 @@ async function initializeStorage() {
   // Fallback final: in-memory storage
   console.log('Storage: Using In-Memory Storage');
   storageInstance = memoryStorageAdapter;
+  if (!secureStorageInstance) secureStorageInstance = memoryStorageAdapter;
   initialized = true;
-  return storageInstance;
+  return { storageInstance, secureStorageInstance };
+}
+
+function isSensitiveKey(key: string) {
+  const k = key.toLowerCase();
+  return k.includes('token') || k.includes('user') || k.includes('password');
 }
 
 export const Storage = {
   async getItem(key: string) {
     try {
-      const storage = await initializeStorage();
-      return await storage.getItem(key);
+      const stores = await initializeStorage();
+      const store = isSensitiveKey(key) && stores.secureStorageInstance ? stores.secureStorageInstance : stores.storageInstance;
+      return await store.getItem(key);
     } catch (error) {
       console.error(`Storage.getItem(${key}) error:`, error);
       return null;
@@ -107,8 +135,9 @@ export const Storage = {
 
   async setItem(key: string, value: string) {
     try {
-      const storage = await initializeStorage();
-      await storage.setItem(key, value);
+      const stores = await initializeStorage();
+      const store = isSensitiveKey(key) && stores.secureStorageInstance ? stores.secureStorageInstance : stores.storageInstance;
+      await store.setItem(key, value);
     } catch (error) {
       console.error(`Storage.setItem(${key}) error:`, error);
     }
@@ -116,8 +145,9 @@ export const Storage = {
 
   async removeItem(key: string) {
     try {
-      const storage = await initializeStorage();
-      await storage.removeItem(key);
+      const stores = await initializeStorage();
+      const store = isSensitiveKey(key) && stores.secureStorageInstance ? stores.secureStorageInstance : stores.storageInstance;
+      await store.removeItem(key);
     } catch (error) {
       console.error(`Storage.removeItem(${key}) error:`, error);
     }

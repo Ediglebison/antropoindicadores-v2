@@ -2,9 +2,9 @@
   "expo": {
     "name": "AntropoMobile",
     "slug": "mobile",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
-    "icon": "./assets/images/favicon.png",
+    "icon": "./assets/images/icon.png",
     "scheme": "mobile",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -39,11 +39,14 @@
           "android": {
             "usesCleartextTraffic": true,
             "packagingOptions": {
-              "pickFirst": ["**/libc++_shared.so"]
+              "pickFirst": [
+                "**/libc++_shared.so"
+              ]
             }
           }
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -52,7 +55,7 @@
     "extra": {
       "router": {},
       "eas": {
-       "projectId": "d89fb2c6-36e4-4142-a1e0-5538f83131f4"
+        "projectId": "d89fb2c6-36e4-4142-a1e0-5538f83131f4"
       }
     }
   }
