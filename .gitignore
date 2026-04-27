@@ -8,3 +8,4 @@ pg_data/
 .idea/
 .agents
 antropo_db_backup.sql
+*.log

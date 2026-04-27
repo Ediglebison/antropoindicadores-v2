@@ -90,7 +90,7 @@ export function Locations() {
   }
 
   return (
-    <div>
+    <div style={{ paddingBottom: '6rem' }}>
       <div className="page-header" style={{ marginBottom: '2rem' }}>
         <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1e293b' }}>Gerenciar Locais / Comunidades</h1>
         <p style={{ color: '#64748b' }}>Cadastre, edite ou remova os locais onde as pesquisas serão aplicadas.</p>

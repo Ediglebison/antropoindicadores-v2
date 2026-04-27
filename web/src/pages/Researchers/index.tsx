@@ -78,7 +78,7 @@ export function Researchers() {
   }
 
   return (
-    <div>
+    <div style={{ paddingBottom: '6rem' }}>
       <div className="page-header">
         <h1>Gestão de Pesquisadores</h1>
       </div>

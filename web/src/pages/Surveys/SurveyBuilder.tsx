@@ -96,7 +96,7 @@ export function SurveyBuilder() {
 
       if (editingId) {
         // Se tem ID, atualiza o existente
-        await api.put(`/surveys/${editingId}`, payload);
+        await api.patch(`/surveys/${editingId}`, payload);
         alert('Questionário atualizado com sucesso!');
       } else {
         // Se não tem ID, cria um novo
@@ -134,7 +134,7 @@ export function SurveyBuilder() {
   }
 
   return (
-    <div className="survey-page">
+    <div className="survey-page" style={{ paddingBottom: '6rem' }}>
       {/* --- ÁREA DE CRIAÇÃO --- */}
       <div className="page-header">
         <h1>{editingId ? 'Editando Questionário' : 'Novo Questionário'}</h1>
@@ -197,11 +197,11 @@ export function SurveyBuilder() {
                 value={q.type}
                 onChange={e => updateQuestion(q.id, 'type', e.target.value as any)}
               >
+                <option value="scale">Escala (1 a 5)</option>
                 <option value="text">Texto Livre</option>
                 <option value="number">Numérico</option>
                 <option value="boolean">Sim/Não</option>
                 <option value="select">Múltipla Escolha</option>
-                <option value="scale">Escala (1 a 5)</option>
               </select>
             </div>
           </div>

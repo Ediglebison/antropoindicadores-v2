@@ -33,7 +33,7 @@ import { SyncModule } from './sync/sync.module';
           return {
             type: 'postgres',
             url: process.env.DATABASE_URL,
-            ssl: isFly ? false : { rejectUnauthorized: false },
+            ssl: isFly ? false : (process.env.DATABASE_URL.includes('localhost') ? false : { rejectUnauthorized: false }),
             entities: [User, Location, Survey, Response],
             autoLoadEntities: true,
             synchronize: true,

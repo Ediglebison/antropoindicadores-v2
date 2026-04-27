@@ -14,6 +14,9 @@ export class SurveysService {
   // Cria um novo questionário
   async create(createSurveyDto: CreateSurveyDto): Promise<Survey> {
     const survey = this.surveysRepository.create(createSurveyDto);
+    if (!survey.id) {
+      survey.id = Date.now().toString();
+    }
     return this.surveysRepository.save(survey);
   }
 

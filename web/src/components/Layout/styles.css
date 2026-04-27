@@ -76,7 +76,7 @@
 
 .main-content {
   flex: 1;
-  padding: 2rem;
+  padding: 2rem 2rem 4rem 2rem; /* Adicionado espaçamento extra na parte inferior */
   height: 100vh; 
   overflow-y: auto; 
 }
@@ -120,6 +120,7 @@
     padding-top: 5rem; /* Espaço para o header */
     padding-left: 1rem;
     padding-right: 1rem;
+    padding-bottom: 4rem; /* Espaço extra na parte inferior no mobile */
   }
 
   /* Esconde a Sidebar jogando-a para fora da tela na esquerda (-100%) */
