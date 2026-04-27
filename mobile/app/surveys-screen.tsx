@@ -214,7 +214,7 @@ export default function SurveysScreen() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
               
               {/* Informações Básicas */}
               <Text style={styles.label}>Título do Questionário</Text>

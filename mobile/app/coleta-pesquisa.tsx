@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, ActivityIndicator, TextInput, FlatList, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, ActivityIndicator, TextInput, FlatList, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import { api } from '../src/services/api';
 import SideMenu from './side-menu';
 import { ScaleCircle } from '../src/components/ScaleCircle';
@@ -131,8 +131,16 @@ export default function ColetaPesquisa() {
   return (
     <View style={styles.fullContainer}>
       <SideMenu />
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        <Header title="Coleta de Pesquisa" subtitle="📋 Selecione o local e o questionário" />
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }} 
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView 
+          style={styles.container} 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 100 }}
+        >
+          <Header title="Coleta de Pesquisa" subtitle="📋 Selecione o local e o questionário" />
       {step === 1 ? (
         <View style={styles.content}>
           <View style={styles.section}>
@@ -304,7 +312,8 @@ export default function ColetaPesquisa() {
           <View style={{ height: 20 }} />
         </View>
       )}
-    </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }

@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
   pageTitle: { fontSize: 20, fontWeight: '700', color: '#1e293b' },
   addBtn: { backgroundColor: '#0ea5e9', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
   addBtnText: { color: '#fff', fontWeight: '700', fontSize: 13 },
-  listContainer: { paddingBottom: 30 },
+  listContainer: { paddingBottom: 100 },
   centerContainer: { flex: 1, justifyContent: 'center' },
   emptyText: { textAlign: 'center', marginTop: 50, color: '#94a3b8' },
 

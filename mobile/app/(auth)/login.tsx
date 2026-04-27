@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 20,
     paddingTop: 40,
-    paddingBottom: 30,
+    paddingBottom: 100,
   },
   
   // Logo
