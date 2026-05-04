@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { api } from '../src/services/api';
+import { database } from '../src/database';
 import { Storage } from '../src/utils/storage';
 import { useMenu } from '../src/context/MenuContext';
 import SideMenu from './side-menu';
@@ -34,23 +35,37 @@ export default function DashboardScreen() {
   async function loadStats() {
     setLoading(true);
     try {
-      const [locRes, surRes, respRes] = await Promise.all([
-        api.get('/locations'),
-        api.get('/surveys'),
-        api.get('/responses'),
-      ]);
+      if (database) {
+        const [locs, surs, resps] = await Promise.all([
+          database.collections.get('locations').query().fetch(),
+          database.collections.get('surveys').query().fetch(),
+          database.collections.get('responses').query().fetch()
+        ]);
+        
+        setStats({
+          totalColetas: resps.length,
+          totalLocais: locs.length,
+          totalQuestionarios: surs.length,
+        });
+      } else {
+        const [locRes, surRes, respRes] = await Promise.all([
+          api.get('/locations'),
+          api.get('/surveys'),
+          api.get('/responses'),
+        ]);
 
-      setStats({
-        totalColetas: respRes.data?.length || 0,
-        totalLocais: locRes.data?.length || 0,
-        totalQuestionarios: surRes.data?.length || 0,
-      });
+        setStats({
+          totalColetas: respRes.data?.length || 0,
+          totalLocais: locRes.data?.length || 0,
+          totalQuestionarios: surRes.data?.length || 0,
+        });
+      }
     } catch (error: any) {
       console.error('❌ Erro ao carregar estatísticas:', error);
-    if (error?.response?.status === 401) {
-      Alert.alert('Sessão expirada', 'Faça login novamente.');
-      handleLogout();
-    }
+      if (error?.response?.status === 401) {
+        Alert.alert('Sessão expirada', 'Faça login novamente.');
+        handleLogout();
+      }
     } finally {
       setLoading(false);
     }

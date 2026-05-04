@@ -5,6 +5,7 @@ import {
   ScrollView, TextInput, Switch, KeyboardAvoidingView, Platform
 } from 'react-native';
 import { surveysAPI } from '../src/services/api';
+import { database } from '../src/database';
 import SideMenu from './side-menu';
 import { Header } from '../src/components/Header';
 
@@ -39,8 +40,34 @@ export default function SurveysScreen() {
 
   async function loadQuestionarios() {
     try {
-      const response = await surveysAPI.getAll(); 
-      setQuestionarios(response || []);
+      if (database) {
+        const surs = await database.collections.get('surveys').query().fetch();
+        const loadedSurveys = surs.map((s: any) => {
+          let parsedSchema = [];
+          if (s._raw.questions_schema) {
+            try {
+              parsedSchema = typeof s._raw.questions_schema === 'string' ? JSON.parse(s._raw.questions_schema) : s._raw.questions_schema;
+            } catch (e) {
+              console.log('Error parsing questions_schema:', e);
+            }
+          }
+          return {
+            id: s.id,
+            title: s.title,
+            description: s.description,
+            questions_schema: parsedSchema,
+            is_active: s._raw.is_active === 1 || s._raw.is_active === true
+          };
+        });
+        setQuestionarios(loadedSurveys as any);
+        // Opcional: buscar API em background
+        surveysAPI.getAll().then(res => {
+          if (res && res.length > 0) setQuestionarios(res);
+        }).catch(err => console.log('Offline for API surveys fetch'));
+      } else {
+        const response = await surveysAPI.getAll(); 
+        setQuestionarios(response || []);
+      }
     } catch (error) {
       Alert.alert('Erro', 'Não foi possível carregar os questionários.');
     } finally {

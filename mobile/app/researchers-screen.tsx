@@ -5,14 +5,15 @@ import {
   ScrollView, TextInput, Switch, KeyboardAvoidingView, Platform 
 } from 'react-native';
 import { usersAPI } from '../src/services/api';
+import { database } from '../src/database';
 import SideMenu from './side-menu';
 import { Header } from '../src/components/Header';
 
-export default function UsersScreen() {
+export default function ResearchersScreen() {
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  
+
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
 
@@ -20,7 +21,7 @@ export default function UsersScreen() {
     name: '',
     access_code: '',
     password: '',
-    role: 'RESEARCHER', // Padrão: Pesquisador
+    role: 'researcher',
     is_active: true
   });
 
@@ -30,8 +31,23 @@ export default function UsersScreen() {
 
   async function loadUsuarios() {
     try {
-      const response = await usersAPI.getAll();
-      setUsuarios(response || []);
+      if (database) {
+        const users = await database.collections.get('users').query().fetch();
+        const loadedUsers = users.map((u: any) => ({
+          id: u.id,
+          name: u.name,
+          access_code: u._raw.access_code,
+          role: u._raw.role
+        }));
+        setUsuarios(loadedUsers as any);
+
+        usersAPI.getAll().then(res => {
+          if (res && res.length > 0) setUsuarios(res);
+        }).catch(err => console.log('Offline for API users fetch'));
+      } else {
+        const response = await usersAPI.getAll();
+        setUsuarios(response || []);
+      }
     } catch (error) {
       Alert.alert('Erro', 'Não foi possível carregar os usuários.');
     } finally {

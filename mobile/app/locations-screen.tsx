@@ -5,6 +5,7 @@ import {
   ScrollView, TextInput, KeyboardAvoidingView, Platform 
 } from 'react-native';
 import { locationsAPI } from '../src/services/api';
+import { database } from '../src/database';
 import SideMenu from './side-menu';
 import { Header } from '../src/components/Header';
 
@@ -31,8 +32,25 @@ export default function LocationsScreen() {
 
   async function loadLocalizacoes() {
     try {
-      const response = await locationsAPI.getAll();
-      setLocalizacoes(response || []);
+      if (database) {
+        const locs = await database.collections.get('locations').query().fetch();
+        const loadedLocations = locs.map((l: any) => ({
+          id: l.id,
+          name: l.name,
+          unique_code: l._raw.unique_code,
+          city: l._raw.city,
+          state: l._raw.state,
+          description: l._raw.description
+        }));
+        setLocalizacoes(loadedLocations as any);
+        
+        locationsAPI.getAll().then(res => {
+          if (res && res.length > 0) setLocalizacoes(res);
+        }).catch(err => console.log('Offline for API locations fetch'));
+      } else {
+        const response = await locationsAPI.getAll();
+        setLocalizacoes(response || []);
+      }
     } catch (error) {
       Alert.alert('Erro', 'Não foi possível carregar as localizações.');
     } finally {

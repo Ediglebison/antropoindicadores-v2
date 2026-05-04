@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { responsesAPI } from '../src/services/api';
+import { database } from '../src/database';
 import SideMenu from './side-menu';
 import { Header } from '../src/components/Header';
 
@@ -32,8 +33,27 @@ export default function ResultsScreen() {
 
   async function loadResultados() {
     try {
-      const response = await responsesAPI.getAll();
-      setResultados(response || []);
+      if (database) {
+        const resps = await database.collections.get('responses').query().fetch();
+        const loadedResponses = resps.map((r: any) => ({
+          id: r.id,
+          survey_id: r._raw.survey_id,
+          location_id: r._raw.location_id,
+          data_payload: r._raw.data_payload,
+          created_at: r._raw.created_at,
+          // Mock data if relationships aren't loaded locally yet for the UI
+          survey: { title: `Survey ID: ${r._raw.survey_id}` },
+          location: { name: `Location ID: ${r._raw.location_id}` },
+        }));
+        setResultados(loadedResponses as any);
+
+        responsesAPI.getAll().then(res => {
+          if (res && res.length > 0) setResultados(res);
+        }).catch(err => console.log('Offline for API responses fetch'));
+      } else {
+        const response = await responsesAPI.getAll();
+        setResultados(response || []);
+      }
     } catch (error) {
       console.error('Erro ao carregar resultados:', error);
       Alert.alert('Ops!', 'Não foi possível carregar os resultados das coletas.');

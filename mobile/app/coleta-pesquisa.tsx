@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, ActivityIndicator, TextInput, FlatList, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import { api } from '../src/services/api';
+import { database } from '../src/database';
 import SideMenu from './side-menu';
 import { ScaleCircle } from '../src/components/ScaleCircle';
 import { Header } from '../src/components/Header';
@@ -47,18 +48,57 @@ export default function ColetaPesquisa() {
     try {
       console.log('🔍 Iniciando carregamento de dados...');
       
-      const [locRes, surRes] = await Promise.all([
-        api.get('/locations'),
-        api.get('/surveys')
-      ]);
+      let loadedLocations: Location[] = [];
+      let loadedSurveys: Survey[] = [];
+
+      if (database) {
+        // Carrega do banco de dados local (WatermelonDB)
+        const locs = await database.collections.get('locations').query().fetch();
+        const surs = await database.collections.get('surveys').query().fetch();
+        
+        loadedLocations = locs.map((l: any) => ({
+          id: l.id,
+          name: l.name,
+          unique_code: l._raw.unique_code,
+          city: l._raw.city,
+          state: l._raw.state,
+          description: l._raw.description
+        })) as any[];
+
+        loadedSurveys = surs.map((s: any) => {
+          let parsedSchema = [];
+          if (s._raw.questions_schema) {
+            try {
+              parsedSchema = typeof s._raw.questions_schema === 'string' ? JSON.parse(s._raw.questions_schema) : s._raw.questions_schema;
+            } catch (e) {
+              console.log('Error parsing questions_schema:', e);
+            }
+          }
+          return {
+            id: s.id,
+            title: s.title,
+            description: s.description,
+            questions_schema: parsedSchema,
+            is_active: s._raw.is_active === 1 || s._raw.is_active === true
+          };
+        }) as any[];
+      } else {
+        // Fallback para API
+        const [locRes, surRes] = await Promise.all([
+          api.get('/locations'),
+          api.get('/surveys')
+        ]);
+        loadedLocations = locRes.data || [];
+        loadedSurveys = surRes.data || [];
+      }
       
       console.log('✅ Dados carregados:', {
-        locations: locRes.data?.length,
-        surveys: surRes.data?.length
+        locations: loadedLocations.length,
+        surveys: loadedSurveys.length
       });
       
-      setLocations(locRes.data || []);
-      setSurveys((surRes.data || []).filter((s: Survey) => s.is_active));
+      setLocations(loadedLocations);
+      setSurveys(loadedSurveys.filter((s: Survey) => s.is_active));
     } catch (error: any) {
       console.error("❌ Erro ao carregar dados:", error.response?.status, error.message);
       console.error("📌 Resposta:", error.response?.data);
@@ -95,20 +135,41 @@ export default function ColetaPesquisa() {
   async function handleSubmitForm() {
     setLoading(true);
     try {
-      await api.post('/responses', {
-        survey_id: selectedSurveyId,
-        location_id: selectedLocationId,
-        answers_json: answers
-      });
+      if (database) {
+        // Salva localmente para sincronização offline
+        await database.write(async () => {
+          await database.collections.get('responses').create((response: any) => {
+            response.surveyId = selectedSurveyId;
+            response.locationId = selectedLocationId;
+            response.dataPayload = JSON.stringify(answers);
+          });
+        });
+        console.log('✅ Resposta salva localmente no banco de dados');
+        
+        // Opcional: tentar enviar para a API imediatamente em background
+        api.post('/responses', {
+          survey_id: selectedSurveyId,
+          location_id: selectedLocationId,
+          answers_json: answers
+        }).catch(err => console.log('Sincronização em background falhou (normal se estiver offline)'));
+
+      } else {
+        // Fallback para a Web
+        await api.post('/responses', {
+          survey_id: selectedSurveyId,
+          location_id: selectedLocationId,
+          answers_json: answers
+        });
+      }
       
-      Alert.alert('Sucesso!', 'Questionário enviado com sucesso');
+      Alert.alert('Sucesso!', 'Questionário salvo com sucesso');
       setStep(1);
       setAnswers({});
       setSelectedLocationId('');
       setSelectedSurveyId('');
     } catch (error) {
       console.error(error);
-      Alert.alert('Erro', 'Falha ao enviar o questionário. Tente novamente.');
+      Alert.alert('Erro', 'Falha ao salvar o questionário. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -133,7 +194,8 @@ export default function ColetaPesquisa() {
       <SideMenu />
       <KeyboardAvoidingView 
         style={{ flex: 1 }} 
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <ScrollView 
           style={styles.container} 
