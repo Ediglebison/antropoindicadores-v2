@@ -109,7 +109,7 @@ export function DashboardLayout() {
         </nav>
 
         {/* Botão de Sair mantido na base do menu */}
-        <button onClick={handleLogout} className="nav-item logout-btn" style={{ marginTop: 'auto', marginBottom: '1rem', marginLeft: '1rem', marginRight: '1rem', width: 'calc(100% - 2rem)' }}>
+        <button onClick={handleLogout} className="nav-item logout-btn" style={{ marginTop: 'auto', marginBottom: '3rem', marginLeft: '1rem', marginRight: '1rem', width: 'calc(100% - 2rem)' }}>
           <LogOut size={20} /> Sair
         </button>
       </aside>

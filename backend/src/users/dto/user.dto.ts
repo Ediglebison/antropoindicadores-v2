@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, IsEnum, MinLength } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEnum, MinLength, IsBoolean } from 'class-validator';
 import { UserRole } from '../user.entity';
 
 export class CreateUserDto {
@@ -18,6 +18,10 @@ export class CreateUserDto {
   @IsOptional()
   @IsEnum(UserRole)
   role?: UserRole;
+
+  @IsOptional()
+  @IsBoolean()
+  is_active?: boolean;
 }
 
 export class UpdateUserDto {
@@ -37,4 +41,8 @@ export class UpdateUserDto {
   @IsOptional()
   @IsEnum(UserRole)
   role?: UserRole;
+
+  @IsOptional()
+  @IsBoolean()
+  is_active?: boolean;
 }

@@ -24,6 +24,9 @@ export class User {
   @Column({ type: 'enum', enum: UserRole, default: UserRole.RESEARCHER })
   role: UserRole;
 
+  @Column({ type: 'boolean', default: true })
+  is_active: boolean;
+
   @CreateDateColumn()
   created_at: Date;
 

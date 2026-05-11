@@ -73,7 +73,7 @@ export function Dashboard() {
       <div className="page-header">
         {/* SE ESTE TÍTULO ABAIXO APARECER, O CÓDIGO NOVO FUNCIONOU! */}
         <h1>Dashboard Principal</h1>
-        <p style={{ color: '#64748b' }}>Visão geral do projeto Antropoindicadores</p>
+        <p style={{ color: '#64748b' }}>Visão geral do projeto Indicadores Antrópicos</p>
       </div>
 
       <div className="stats-grid">

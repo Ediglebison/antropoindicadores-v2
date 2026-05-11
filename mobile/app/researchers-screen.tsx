@@ -99,15 +99,7 @@ export default function ResearchersScreen() {
         await usersAPI.update(editingUser.id, dataToSend);
         Alert.alert('Sucesso', 'Usuário atualizado com sucesso!');
       } else {
-        const gerarUUID = () => {
-          return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            const r = Math.random() * 16 | 0;
-            const v = c === 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-          });
-        };
-
-        await usersAPI.create({ id: gerarUUID(), ...dataToSend });
+        await usersAPI.create(dataToSend);
         Alert.alert('Sucesso', 'Usuário cadastrado com sucesso!');
       }
 
@@ -196,7 +188,7 @@ export default function ResearchersScreen() {
       <Modal visible={isFormVisible} animationType="slide" transparent={true}>
         <KeyboardAvoidingView 
           style={styles.modalOverlay} 
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
           <View style={styles.formContent}>
             <View style={styles.modalHeader}>

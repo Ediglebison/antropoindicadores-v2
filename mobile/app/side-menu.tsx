@@ -18,7 +18,7 @@ export default function SideMenu() {
   const insets = useSafeAreaInsets();
   const slideAnim = useRef(new Animated.Value(-MENU_WIDTH)).current;
   const overlayAnim = useRef(new Animated.Value(0)).current;
-  
+
   const [isSyncing, setIsSyncing] = useState(false);
   const [userRole, setUserRole] = useState('RESEARCHER'); // Padrão de segurança: Pesquisador comum
   const netInfo = useNetInfo();
@@ -62,7 +62,7 @@ export default function SideMenu() {
     { id: 'coleta', label: 'Nova Coleta', icon: '📝', route: '/coleta-pesquisa', roles: ['ADMIN', 'RESEARCHER'] },
     { id: 'resultados', label: 'Resultados', icon: '📈', route: '/results-screen', roles: ['ADMIN', 'RESEARCHER'] },
     { id: 'locais', label: 'Locais', icon: '🗺️', route: '/locations-screen', roles: ['ADMIN', 'RESEARCHER'] },
-    
+
     // Abas restritas apenas para Administradores
     { id: 'questionarios', label: 'Formulários', icon: '📋', route: '/surveys-screen', roles: ['ADMIN'] },
     { id: 'pesquisadores', label: 'Equipe', icon: '👥', route: '/researchers-screen', roles: ['ADMIN'] },
@@ -86,7 +86,8 @@ export default function SideMenu() {
   async function handleLogout() {
     Alert.alert('Sair', 'Tem certeza que deseja sair da aplicação?', [
       { text: 'Cancelar', style: 'cancel' },
-      { text: 'Sair', style: 'destructive', onPress: async () => {
+      {
+        text: 'Sair', style: 'destructive', onPress: async () => {
           try {
             await Storage.removeItem('auth_token');
             await Storage.removeItem('user');

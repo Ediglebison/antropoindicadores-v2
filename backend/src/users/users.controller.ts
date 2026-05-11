@@ -18,6 +18,7 @@ export class UsersController {
       access_code: body.access_code,
       role: body.role,
       password: body.password, // O Service vai tratar se isso estiver vazio
+      is_active: body.is_active,
     });
   }
 
@@ -37,6 +38,7 @@ export class UsersController {
       access_code: body.access_code,
       password_hash,
       role: body.role || UserRole.RESEARCHER,
+      is_active: body.is_active !== undefined ? body.is_active : true,
     });
   }
 
