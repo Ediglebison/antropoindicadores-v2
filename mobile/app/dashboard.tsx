@@ -105,7 +105,7 @@ export default function DashboardScreen() {
                 </View>
                 <View style={styles.cardContent}>
                   <Text style={styles.cardLabel}>REGISTROS COLETADOS</Text>
-                  <Text style={styles.cardNumber}>{stats.totalColetas}</Text>
+                  <Text testID="total-coletas" style={styles.cardNumber}>{stats.totalColetas}</Text>
                 </View>
               </View>
 
@@ -116,7 +116,7 @@ export default function DashboardScreen() {
                 </View>
                 <View style={styles.cardContent}>
                   <Text style={styles.cardLabel}>LOCAIS MONITORADOS</Text>
-                  <Text style={styles.cardNumber}>{stats.totalLocais}</Text>
+                  <Text testID="total-locais" style={styles.cardNumber}>{stats.totalLocais}</Text>
                 </View>
               </View>
 
@@ -127,7 +127,7 @@ export default function DashboardScreen() {
                 </View>
                 <View style={styles.cardContent}>
                   <Text style={styles.cardLabel}>FORMULÁRIOS ATIVOS</Text>
-                  <Text style={styles.cardNumber}>{stats.totalQuestionarios}</Text>
+                  <Text testID="total-questionarios" style={styles.cardNumber}>{stats.totalQuestionarios}</Text>
                 </View>
               </View>
             </View>

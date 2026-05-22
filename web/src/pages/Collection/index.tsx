@@ -93,8 +93,9 @@ export function Collection() {
 
           <div className="card">
             <div className="input-group">
-              <label><MapPin size={16} /> Local da Entrevista</label>
+              <label htmlFor="location-select"><MapPin size={16} /> Local da Entrevista</label>
               <select 
+                id="location-select"
                 className="form-control"
                 value={selectedLocationId}
                 onChange={e => setSelectedLocationId(e.target.value)}
@@ -107,8 +108,9 @@ export function Collection() {
             </div>
 
             <div className="input-group" style={{marginTop: '1.5rem'}}>
-              <label><FileText size={16} /> Questionário a ser aplicado</label>
+              <label htmlFor="survey-select"><FileText size={16} /> Questionário a ser aplicado</label>
               <select 
+                id="survey-select"
                 className="form-control"
                 value={selectedSurveyId}
                 onChange={e => setSelectedSurveyId(e.target.value)}
