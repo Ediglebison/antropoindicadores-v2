@@ -37,4 +37,4 @@ build/
 # IDE config
 .idea/
 .vscode/
-*.iml
+*.imlcoverage/
