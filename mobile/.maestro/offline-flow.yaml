@@ -1,0 +1,30 @@
+appId: com.ediglebison.antropomobile
+---
+# Teste E2E de fluxo crítico offline do pesquisador
+
+- launchApp
+- assertVisible: "Código de Acesso"
+- tapOn: "Código de Acesso"
+- inputText: ${APP_USER}
+- tapOn: "Senha"
+- inputText: ${APP_PASSWORD}
+- tapOn: "Entrar na Plataforma"
+
+- assertVisible: "Dashboard"
+
+# Navegação para a lista de pesquisas
+- tapOn: "Pesquisas"
+- assertVisible: "Iniciar Coleta"
+- tapOn: "Iniciar Coleta"
+
+# Preenchimento de pesquisa
+# Supondo que exista um campo de nome e botão de salvar
+- assertVisible: "Nome"
+- tapOn: "Nome"
+- inputText: "Entrevistado E2E"
+
+- tapOn: "Salvar"
+
+# Retorno ao Dashboard ou Tela de Sincronização
+- tapOn: "Sincronizar"
+- assertVisible: "Dados sincronizados com sucesso"

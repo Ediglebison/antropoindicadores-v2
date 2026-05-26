@@ -54,6 +54,14 @@ O projeto utiliza uma arquitetura moderna baseada em microserviços e containers
 
 ---
 
+## 🧪 Qualidade e Testes
+
+Para garantir a qualidade e estabilidade do projeto, mantemos uma estratégia de testes rigorosa.
+
+Consulte nosso [Plano de Testes (TESTING_PLAN.md)](./TESTING_PLAN.md) para entender como conduzimos testes unitários, de integração e os próximos passos da nossa pipeline de qualidade.
+
+---
+
 ## ⚙️ Como Rodar o Projeto
 
 ### Pré-requisitos

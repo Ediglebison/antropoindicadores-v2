@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "lint:all": "npm run lint --prefix backend && npm run lint --prefix web && npm run lint --prefix mobile",
     "test:all": "npm run test --prefix backend && npm run test --prefix web && npm run test --prefix mobile",
     "test:cov:all": "npm run test:cov --prefix backend && npm run test:cov --prefix web && npm run test:cov --prefix mobile"
   },

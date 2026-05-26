@@ -35,6 +35,23 @@ O aplicativo possui um fluxo completo e otimizado para a coleta de pesquisas:
 
 ---
 
+## 📦 Build e Distribuição (EAS Build)
+
+Utilizamos o **Expo Application Services (EAS)** para gerar os builds do aplicativo.
+
+### Pré-requisitos
+1. Instale o EAS CLI globalmente: `npm install -g eas-cli`
+2. Faça login na sua conta Expo: `eas login`
+
+### Comandos de Build
+- **Desenvolvimento:** `eas build --profile development --platform android`
+- **Preview (Gera APK para testes):** `eas build --profile preview --platform android`
+- **Produção (AAB para Play Store):** `eas build --profile production --platform android`
+
+> Para configurar as credenciais (Keystore), o comando `eas build` solicitará que você as crie ou faça o upload na primeira execução.
+
+---
+
 ## ⚙️ Como Configurar e Rodar o Aplicativo
 
 ### Pré-requisitos

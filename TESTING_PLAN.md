@@ -45,6 +45,25 @@ Este documento serve como o roteiro principal para a nossa jornada de implementa
 - [x] Criar scripts globais na raiz (ex: `npm run test:all`) para rodar os testes de todos os ambientes.
   - *Problemas/Soluções:* Scripts `test:all` e `test:cov:all` já estavam presentes no root e funcionaram perfeitamente usando `--prefix`.
 
----
-**Como usar este documento:**
-Conforme avançamos, marcaremos com `[x]` as tarefas concluídas. Se algo falhar, deixaremos o `[ ]` e anotaremos o erro na seção *Problemas/Soluções* da respectiva tarefa. Após resolver o problema, voltamos a testar e, tendo sucesso, marcamos como concluído.
+## 🚀 Próximos Passos (Ações Futuras)
+
+Esta seção define o roadmap após a estabilização dos testes unitários e de integração.
+
+### Fase 6: Aprimoramento da Pipeline (CI/CD Avançado)
+- [x] **Passo 1: Integrar verificações de Linting e Formatação na CI.** Adicionar etapas no Github Actions para rodar o linting do backend, web e mobile.
+- [x] **Passo 2: Configurar Continuous Deployment (CD) para o Backend.** Implementar deploy automático (ex: Fly.io) quando a branch main for atualizada.
+- [x] **Passo 3: Configurar Continuous Deployment (CD) para o Web.** Implementar deploy automatizado (ex: Vercel) para a interface do administrador.
+
+### Fase 7: Testes End-to-End (E2E)
+- [x] **Passo 1: E2E no Frontend Web (Cypress ou Playwright).** Testar o fluxo de administrador (Login -> Criação de questionário -> Associação a local).
+- [ ] **Passo 2: E2E no Mobile (Maestro ou Detox).** (Postergado/Adiado) Testar o fluxo crítico offline do pesquisador (Login -> Offline -> Preencher pesquisa -> Reconectar -> Sincronizar).
+
+### Fase 8: Build e Distribuição Mobile (Expo EAS)
+- [x] **Passo 1: Configuração do EAS Build.** Configurar perfis e credenciais (Keystore Android / Certificados iOS).
+- [ ] **Passo 2: Criação de Builds Internos.** Gerar APK para testes em equipe interna (`eas build -p android --profile preview`).
+- [ ] **Passo 3: Configuração do EAS Submit.** Preparar assets visuais e descrições para a Play Store e App Store.
+
+### Fase 9: Evoluções Funcionais do Domínio
+- [ ] **Passo 1: Geolocalização de Precisão Móvel.** Integrar o `expo-location` para gravar as coordenadas exatas da coleta.
+- [ ] **Passo 2: Exportação de Relatórios Web.** Permitir a exportação de respostas consolidadas (CSV/XLSX) no painel Admin.
+- [ ] **Passo 3: Mapas Visuais.** Integrar mapa (Leaflet/Google Maps) no Dashboard Web para visualizar os pontos geográficos de cada coleta.

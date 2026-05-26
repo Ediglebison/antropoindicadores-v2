@@ -39,5 +39,8 @@ jobs:
       run: npm ci
       working-directory: ./mobile
 
+    - name: Run linting
+      run: npm run lint:all
+
     - name: Run tests with coverage
       run: npm run test:cov:all
