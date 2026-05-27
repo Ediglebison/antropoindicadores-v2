@@ -55,7 +55,7 @@ describe('UsersController', () => {
 
       const result = await controller.update(id, updateUserDto as any);
 
-      expect(usersService.update).toHaveBeenCalledWith(id, {
+      expect(mockUsersService.update).toHaveBeenCalledWith(id, {
         name: 'Test',
         access_code: undefined,
         role: undefined,
@@ -83,8 +83,8 @@ describe('UsersController', () => {
 
       await controller.create(createUserDto);
 
-      expect(usersService.hashPassword).toHaveBeenCalledWith('pass');
-      expect(usersService.create).toHaveBeenCalledWith({
+      expect(mockUsersService.hashPassword).toHaveBeenCalledWith('pass');
+      expect(mockUsersService.create).toHaveBeenCalledWith({
         name: 'Test',
         access_code: '123',
         password_hash: 'hashed-pass',
@@ -100,7 +100,7 @@ describe('UsersController', () => {
 
       await controller.create(createUserDto as any);
 
-      expect(usersService.create).toHaveBeenCalledWith({
+      expect(mockUsersService.create).toHaveBeenCalledWith({
         name: 'Test',
         access_code: '123',
         password_hash: 'hashed-pass',
@@ -117,7 +117,7 @@ describe('UsersController', () => {
 
       const result = await controller.setupAdmin(createUserDto as any, 'test-token');
 
-      expect(usersService.createAdminBypass).toHaveBeenCalledWith(createUserDto);
+      expect(mockUsersService.createAdminBypass).toHaveBeenCalledWith(createUserDto);
       expect(result).toEqual({ id: '1', ...createUserDto });
     });
 
@@ -134,7 +134,7 @@ describe('UsersController', () => {
       mockUsersService.remove.mockResolvedValue({ affected: 1 });
 
       expect(await controller.remove(id)).toEqual({ affected: 1 });
-      expect(usersService.remove).toHaveBeenCalledWith(id);
+      expect(mockUsersService.remove).toHaveBeenCalledWith(id);
     });
   });
 });

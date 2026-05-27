@@ -40,8 +40,8 @@ O aplicativo possui um fluxo completo e otimizado para a coleta de pesquisas:
 Utilizamos o **Expo Application Services (EAS)** para gerar os builds do aplicativo.
 
 ### Pré-requisitos
-1. Instale o EAS CLI globalmente: `npm install -g eas-cli`
-2. Faça login na sua conta Expo: `eas login`
+1. Instale o EAS CLI globalmente: `npm install -g eas-cli` (ou utilize `npx eas-cli`)
+2. Faça login na sua conta Expo: `npx eas login`
 
 ### Comandos de Build
 - **Desenvolvimento:** `eas build --profile development --platform android`

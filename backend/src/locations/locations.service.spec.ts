@@ -3,11 +3,10 @@ import { LocationsService } from './locations.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Location } from './entities/location.entity';
 import { ConflictException } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { describe, beforeEach, afterEach, it } from 'node:test';
 
 describe('LocationsService', () => {
   let service: LocationsService;
-  let repository: Repository<Location>;
 
   const mockRepository = {
     create: jest.fn(),
@@ -30,7 +29,6 @@ describe('LocationsService', () => {
     }).compile();
 
     service = module.get<LocationsService>(LocationsService);
-    repository = module.get<Repository<Location>>(getRepositoryToken(Location));
   });
 
   afterEach(() => {

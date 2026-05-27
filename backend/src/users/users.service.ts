@@ -4,6 +4,12 @@ import { Repository } from 'typeorm';
 import { User, UserRole } from './user.entity';
 import * as bcrypt from 'bcrypt';
 
+interface CreateAdminBypassDto {
+  password: string;
+  name: string;
+  access_code: string;
+}
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -16,7 +22,7 @@ export class UsersService {
     return await bcrypt.hash(password, salt);
   }
 
-  async createAdminBypass(body: any) {
+  async createAdminBypass(body: CreateAdminBypassDto): Promise<User> {
     const saltOrRounds = 10;
     const hashedPassword = await bcrypt.hash(body.password, saltOrRounds);
 
@@ -31,7 +37,6 @@ export class UsersService {
   }
 
   async findOneByCode(access_code: string): Promise<User | null> {
-    // Normaliza para maiúsculas antes de buscar
     return this.usersRepository.findOne({ where: { access_code: access_code.toUpperCase() } });
   }
 
@@ -45,7 +50,6 @@ export class UsersService {
 
   async create(data: Partial<User>): Promise<User> {
     try {
-      // Normaliza o access_code para maiúsculas
       if (data.access_code) {
         data.access_code = data.access_code.toUpperCase();
       }
@@ -53,7 +57,8 @@ export class UsersService {
       const newUser = this.usersRepository.create(data);
       return await this.usersRepository.save(newUser);
     } catch (error) {
-      if (error.code === '23505') {
+      const dbError = error as Record<string, unknown>;
+      if (dbError.code === '23505') {
         throw new ConflictException('Este código de acesso já está em uso.');
       }
       console.error("Erro ao salvar usuário:", error);
@@ -65,28 +70,27 @@ export class UsersService {
     await this.usersRepository.delete(id);
   }
 
-  async update(id: string, data: any): Promise<User> {
+  async update(id: string, data: Partial<User> & { password?: string }): Promise<User> {
     const user = await this.findOneById(id);
     
     if (!user) {
       throw new Error('Usuário não encontrado');
     }
 
-    if (data.password) {
+    const updateData = { ...data };
+    
+    if (updateData.password) {
       const salt = await bcrypt.genSalt();
-      data.password_hash = await bcrypt.hash(data.password, salt);
+      updateData.password_hash = await bcrypt.hash(updateData.password, salt);
+      delete updateData.password;
     }
-    
-    delete data.password;
 
-    // Atualiza
-    await this.usersRepository.update(id, data);
+    await this.usersRepository.update(id, updateData);
     
-    // 2. Busca o usuário atualizado
     const updatedUser = await this.findOneById(id);
 
     if (!updatedUser) {
-        throw new Error('Erro ao recuperar usuário após atualização.');
+      throw new Error('Erro ao recuperar usuário após atualização.');
     }
     
     return updatedUser;

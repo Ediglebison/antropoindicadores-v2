@@ -1,10 +1,11 @@
 import React from 'react';
 import { render, waitFor, fireEvent } from '@testing-library/react-native';
-import DashboardScreen from './dashboard';
+import DashboardScreen from '../app/dashboard';
 import { api } from '../src/services/api';
 import { database } from '../src/database';
 import { Storage } from '../src/utils/storage';
 import { useRouter } from 'expo-router';
+import { Alert } from 'react-native';
 
 // Mocks
 jest.mock('react-native-safe-area-context', () => ({
@@ -17,7 +18,7 @@ jest.mock('expo-router', () => ({
 
 jest.mock('../src/services/api', () => ({
   api: {
-    get: jest.fn(),
+    get: jest.fn() as jest.Mock<any, any>,
   },
 }));
 
@@ -35,12 +36,14 @@ jest.mock('../src/context/MenuContext', () => ({
   useMenu: () => ({ openMenu: jest.fn() }),
 }));
 
-jest.mock('./side-menu', () => {
+jest.mock('../app/side-menu', () => {
   const { View } = require('react-native');
   return function DummySideMenu() {
     return <View testID="side-menu" />;
   };
 });
+
+jest.spyOn(Alert, 'alert').mockImplementation(() => {});
 
 describe('DashboardScreen', () => {
   let mockRouter: any;
@@ -55,10 +58,11 @@ describe('DashboardScreen', () => {
   });
 
   it('renders correctly and loads stats from api', async () => {
-    (api.get as jest.Mock)
-      .mockResolvedValueOnce({ data: [{ id: 'loc1' }, { id: 'loc2' }] }) // locations
-      .mockResolvedValueOnce({ data: [{ id: 'sur1' }] }) // surveys
-      .mockResolvedValueOnce({ data: [{ id: 'resp1' }, { id: 'resp2' }, { id: 'resp3' }] }); // responses
+    const apiGetMock = api.get as jest.Mock<any, any>;
+    apiGetMock
+      .mockResolvedValueOnce({ data: [{ id: 'loc1' }, { id: 'loc2' }] } as any) // locations
+      .mockResolvedValueOnce({ data: [{ id: 'sur1' }] } as any) // surveys
+      .mockResolvedValueOnce({ data: [{ id: 'resp1' }, { id: 'resp2' }, { id: 'resp3' }] } as any); // responses
 
     const { getByText, getByTestId } = render(<DashboardScreen />);
 
@@ -74,7 +78,7 @@ describe('DashboardScreen', () => {
   });
 
   it('handles navigation to coleta-pesquisa', async () => {
-    (api.get as jest.Mock).mockResolvedValue({ data: [] });
+    (api.get as jest.Mock).mockResolvedValue({ data: [] } as any);
 
     const { getByText } = render(<DashboardScreen />);
 

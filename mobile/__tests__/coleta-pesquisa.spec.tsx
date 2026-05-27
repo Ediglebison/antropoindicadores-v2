@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, waitFor, fireEvent } from '@testing-library/react-native';
-import ColetaPesquisa from './coleta-pesquisa';
+import ColetaPesquisa from '../app/coleta-pesquisa';
 import { api } from '../src/services/api';
 import { database } from '../src/database';
 import { Alert } from 'react-native';
@@ -24,7 +24,7 @@ jest.mock('../src/context/MenuContext', () => ({
   useMenu: () => ({ openMenu: jest.fn() }),
 }));
 
-jest.mock('./side-menu', () => {
+jest.mock('../app/side-menu', () => {
   const { View } = require('react-native');
   return function DummySideMenu() {
     return <View testID="side-menu" />;
@@ -42,7 +42,8 @@ describe('ColetaPesquisa', () => {
     const mockLocations = [{ id: 'loc1', name: 'Local 1', unique_code: 'L1' }];
     const mockSurveys = [{ id: 'sur1', title: 'Survey 1', is_active: true, questions_schema: [] }];
     
-    (api.get as jest.Mock)
+    const apiGetMock = api.get as any;
+    apiGetMock
       .mockResolvedValueOnce({ data: mockLocations }) // locations
       .mockResolvedValueOnce({ data: mockSurveys }); // surveys
 
@@ -64,11 +65,12 @@ describe('ColetaPesquisa', () => {
       ] 
     }];
     
-    (api.get as jest.Mock)
+    const apiGetMock = api.get as any;
+    apiGetMock
       .mockResolvedValueOnce({ data: mockLocations }) // locations
       .mockResolvedValueOnce({ data: mockSurveys }); // surveys
 
-    const { getByText, getByPlaceholderText, queryByText } = render(<ColetaPesquisa />);
+    const { getByText, getByPlaceholderText } = render(<ColetaPesquisa />);
 
     await waitFor(() => {
       expect(getByText('📍 Local da Entrevista *')).toBeTruthy();
@@ -96,7 +98,8 @@ describe('ColetaPesquisa', () => {
     fireEvent.changeText(getByPlaceholderText('Digite sua resposta...'), 'João');
 
     // Submit
-    (api.post as jest.Mock).mockResolvedValueOnce({});
+    const apiPostMock = api.post as any;
+    apiPostMock.mockResolvedValueOnce({});
     fireEvent.press(getByText('✓ Enviar Questionário'));
 
     await waitFor(() => {
@@ -118,7 +121,8 @@ describe('ColetaPesquisa', () => {
       questions_schema: [] // Empty questions
     }];
     
-    (api.get as jest.Mock)
+    const apiGetMock = api.get as any;
+    apiGetMock
       .mockResolvedValueOnce({ data: mockLocations })
       .mockResolvedValueOnce({ data: mockSurveys });
 

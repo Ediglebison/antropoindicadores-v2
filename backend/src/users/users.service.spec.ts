@@ -4,13 +4,11 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { User, UserRole } from './user.entity';
 import { ConflictException, InternalServerErrorException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { Repository } from 'typeorm';
 
 jest.mock('bcrypt');
 
 describe('UsersService', () => {
   let service: UsersService;
-  let repository: Repository<User>;
 
   const mockRepository = {
     create: jest.fn(),
@@ -33,9 +31,8 @@ describe('UsersService', () => {
     }).compile();
 
     service = module.get<UsersService>(UsersService);
-    repository = module.get<Repository<User>>(getRepositoryToken(User));
   });
-
+  
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -181,7 +178,7 @@ describe('UsersService', () => {
       (bcrypt.genSalt as jest.Mock).mockResolvedValue('salt');
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashed_new');
 
-      const result = await service.update('1', { password: 'new_password' });
+      const result = await service.update('1', { password: 'new_password' } as any);
 
       expect(bcrypt.hash).toHaveBeenCalledWith('new_password', 'salt');
       expect(mockRepository.update).toHaveBeenCalledWith('1', { password_hash: 'hashed_new' });

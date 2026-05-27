@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, UseGuards, Param, Delete, Patch, Headers, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { UserRole } from './user.entity';
+import { User, UserRole } from './user.entity';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
@@ -13,13 +13,15 @@ export class UsersController {
   @Roles(UserRole.ADMIN)
   @Patch(':id') // <--- ROTA DE EDIÇÃO
   async update(@Param('id') id: string, @Body() body: UpdateUserDto) {
-    return this.usersService.update(id, {
+    const updateData: Partial<User> & { password?: string } = {
       name: body.name,
       access_code: body.access_code,
       role: body.role,
       password: body.password, // O Service vai tratar se isso estiver vazio
       is_active: body.is_active,
-    });
+    };
+
+    return this.usersService.update(id, updateData);
   }
 
   @Roles(UserRole.ADMIN)
