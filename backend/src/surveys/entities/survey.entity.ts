@@ -1,9 +1,14 @@
-import { Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-
+import {
+  Entity,
+  PrimaryColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity('surveys') // O nome exato da tabela no PostgreSQL
 export class Survey {
-  @PrimaryColumn('varchar') 
+  @PrimaryColumn('varchar')
   id: string;
 
   @Column()

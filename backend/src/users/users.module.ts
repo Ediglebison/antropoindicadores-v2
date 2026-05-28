@@ -12,6 +12,6 @@ import { User } from './user.entity';
   controllers: [UsersController],
   providers: [UsersService],
   // IMPORTANTE: Exportamos o Service para que o AuthModule possa usá-lo
-  exports: [UsersService], 
+  exports: [UsersService],
 })
 export class UsersModule {}

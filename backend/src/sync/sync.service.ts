@@ -13,10 +13,10 @@ export class SyncService {
   constructor(
     @InjectRepository(Survey)
     private surveyRepository: Repository<Survey>,
-    
+
     @InjectRepository(Location)
     private locationRepository: Repository<Location>,
-    
+
     @InjectRepository(Response)
     private responseRepository: Repository<Response>,
 
@@ -24,7 +24,7 @@ export class SyncService {
     private userRepository: Repository<User>,
   ) {}
 
-    // ==========================================
+  // ==========================================
   // PULL: O SERVIDOR ENVIA QUESTIONÁRIOS E LOCAIS
   // ==========================================
   async pullChanges(lastPulledAt: number) {
@@ -35,11 +35,12 @@ export class SyncService {
     const formatSurvey = (s: any) => {
       let schemaStr = '';
       if (s.questions_schema) {
-         schemaStr = typeof s.questions_schema === 'string' 
-           ? s.questions_schema 
-           : JSON.stringify(s.questions_schema);
+        schemaStr =
+          typeof s.questions_schema === 'string'
+            ? s.questions_schema
+            : JSON.stringify(s.questions_schema);
       }
-      
+
       return {
         id: s.id,
         title: s.title,
@@ -47,7 +48,7 @@ export class SyncService {
         is_active: s.is_active,
         questions_schema: schemaStr,
         created_at: new Date(s.created_at).getTime(),
-        updated_at: new Date(s.updated_at).getTime()
+        updated_at: new Date(s.updated_at).getTime(),
       };
     };
 
@@ -59,7 +60,7 @@ export class SyncService {
       state: l.state || '',
       description: l.description || '',
       created_at: new Date(l.created_at).getTime(),
-      updated_at: new Date(l.updated_at).getTime()
+      updated_at: new Date(l.updated_at).getTime(),
     });
 
     const formatUser = (u: any) => ({
@@ -70,7 +71,7 @@ export class SyncService {
       role: u.role,
       created_at: new Date(u.created_at).getTime(),
       // Assume created_at as updated_at for now since user entity doesn't have updated_at
-      updated_at: new Date(u.created_at).getTime()
+      updated_at: new Date(u.created_at).getTime(),
     });
 
     // 1. Prepara os Questionários (Surveys)
@@ -79,8 +80,8 @@ export class SyncService {
     });
     const surveysCreated: any[] = [];
     const surveysUpdated: any[] = [];
-    
-    surveysAlterados.forEach(survey => {
+
+    surveysAlterados.forEach((survey) => {
       const formatted = formatSurvey(survey);
       // Se a data de criação for mais recente que o último PULL, é novo!
       if (new Date(survey.created_at).getTime() > lastPulledAt) {
@@ -96,8 +97,8 @@ export class SyncService {
     });
     const locationsCreated: any[] = [];
     const locationsUpdated: any[] = [];
-    
-    locationsAlterados.forEach(location => {
+
+    locationsAlterados.forEach((location) => {
       const formatted = formatLocation(location);
       if (new Date(location.created_at).getTime() > lastPulledAt) {
         locationsCreated.push(formatted);
@@ -114,7 +115,7 @@ export class SyncService {
     const usersCreated: any[] = [];
     const usersUpdated: any[] = [];
 
-    usersAlterados.forEach(user => {
+    usersAlterados.forEach((user) => {
       const formatted = formatUser(user);
       if (new Date(user.created_at).getTime() > lastPulledAt) {
         usersCreated.push(formatted);
@@ -142,7 +143,7 @@ export class SyncService {
           deleted: [],
         },
         // O celular vai baixar pesquisas e locais, mas não precisa baixar as respostas dos outros
-        responses: { created: [], updated: [], deleted: [] }
+        responses: { created: [], updated: [], deleted: [] },
       },
       timestamp: Date.now(),
     };
@@ -156,7 +157,6 @@ export class SyncService {
     const responsesChanges = changes.responses;
 
     if (responsesChanges) {
-      
       // Função para traduzir as datas do formato numérico do celular para o Banco de Dados
       const formatarResposta = (resp: any) => {
         return {

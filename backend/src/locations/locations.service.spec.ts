@@ -3,7 +3,6 @@ import { LocationsService } from './locations.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Location } from './entities/location.entity';
 import { ConflictException } from '@nestjs/common';
-import { describe, beforeEach, afterEach, it } from 'node:test';
 
 describe('LocationsService', () => {
   let service: LocationsService;
@@ -50,10 +49,14 @@ describe('LocationsService', () => {
 
       const result = await service.create(data);
 
-      expect(mockRepository.create).toHaveBeenCalledWith({ id: '1234567890', name: 'Loc 1', code: 'L1' });
+      expect(mockRepository.create).toHaveBeenCalledWith({
+        id: '1234567890',
+        name: 'Loc 1',
+        code: 'L1',
+      });
       expect(mockRepository.save).toHaveBeenCalled();
       expect(result).toEqual(expectedLocation);
-      
+
       jest.restoreAllMocks();
     });
 
@@ -61,7 +64,9 @@ describe('LocationsService', () => {
       mockRepository.create.mockReturnValue({ name: 'Loc 1', code: 'L1' });
       mockRepository.save.mockRejectedValue({ code: '23505' });
 
-      await expect(service.create({ name: 'Loc 1', code: 'L1' })).rejects.toThrow(ConflictException);
+      await expect(
+        service.create({ name: 'Loc 1', code: 'L1' }),
+      ).rejects.toThrow(ConflictException);
     });
 
     it('should throw original error if not duplicate code', async () => {
@@ -70,9 +75,13 @@ describe('LocationsService', () => {
       mockRepository.save.mockRejectedValue(error);
 
       // spy console error to keep output clean
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
 
-      await expect(service.create({ name: 'Loc 1', code: 'L1' })).rejects.toThrow('Other error');
+      await expect(
+        service.create({ name: 'Loc 1', code: 'L1' }),
+      ).rejects.toThrow('Other error');
 
       consoleSpy.mockRestore();
     });
@@ -85,7 +94,9 @@ describe('LocationsService', () => {
 
       const result = await service.findAll();
 
-      expect(mockRepository.find).toHaveBeenCalledWith({ order: { name: 'ASC' } });
+      expect(mockRepository.find).toHaveBeenCalledWith({
+        order: { name: 'ASC' },
+      });
       expect(result).toEqual(locations);
     });
   });
@@ -97,7 +108,9 @@ describe('LocationsService', () => {
 
       const result = await service.findOne('1');
 
-      expect(mockRepository.findOne).toHaveBeenCalledWith({ where: { id: '1' } });
+      expect(mockRepository.findOne).toHaveBeenCalledWith({
+        where: { id: '1' },
+      });
       expect(result).toEqual(location);
     });
   });
@@ -110,8 +123,12 @@ describe('LocationsService', () => {
 
       const result = await service.update('1', { name: 'Updated' });
 
-      expect(mockRepository.update).toHaveBeenCalledWith('1', { name: 'Updated' });
-      expect(mockRepository.findOne).toHaveBeenCalledWith({ where: { id: '1' } });
+      expect(mockRepository.update).toHaveBeenCalledWith('1', {
+        name: 'Updated',
+      });
+      expect(mockRepository.findOne).toHaveBeenCalledWith({
+        where: { id: '1' },
+      });
       expect(result).toEqual(location);
     });
   });

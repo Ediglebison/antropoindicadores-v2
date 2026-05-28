@@ -30,9 +30,9 @@ describe('UsersController', () => {
         },
       ],
     })
-    .overrideGuard(RolesGuard)
-    .useValue({ canActivate: () => true })
-    .compile();
+      .overrideGuard(RolesGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<UsersController>(UsersController);
     usersService = module.get<UsersService>(UsersService);
@@ -53,7 +53,7 @@ describe('UsersController', () => {
       const expectedResult = { id, ...updateUserDto };
       mockUsersService.update.mockResolvedValue(expectedResult);
 
-      const result = await controller.update(id, updateUserDto as any);
+      const result = await controller.update(id, updateUserDto);
 
       expect(mockUsersService.update).toHaveBeenCalledWith(id, {
         name: 'Test',
@@ -77,9 +77,19 @@ describe('UsersController', () => {
 
   describe('create', () => {
     it('should create a user', async () => {
-      const createUserDto = { name: 'Test', access_code: '123', password: 'pass', role: UserRole.RESEARCHER, is_active: true };
+      const createUserDto = {
+        name: 'Test',
+        access_code: '123',
+        password: 'pass',
+        role: UserRole.RESEARCHER,
+        is_active: true,
+      };
       mockUsersService.hashPassword.mockResolvedValue('hashed-pass');
-      mockUsersService.create.mockResolvedValue({ id: '1', ...createUserDto, password_hash: 'hashed-pass' });
+      mockUsersService.create.mockResolvedValue({
+        id: '1',
+        ...createUserDto,
+        password_hash: 'hashed-pass',
+      });
 
       await controller.create(createUserDto);
 
@@ -94,11 +104,21 @@ describe('UsersController', () => {
     });
 
     it('should use default values for role and is_active if not provided', async () => {
-      const createUserDto = { name: 'Test', access_code: '123', password: 'pass' };
+      const createUserDto = {
+        name: 'Test',
+        access_code: '123',
+        password: 'pass',
+      };
       mockUsersService.hashPassword.mockResolvedValue('hashed-pass');
-      mockUsersService.create.mockResolvedValue({ id: '1', ...createUserDto, password_hash: 'hashed-pass', role: UserRole.RESEARCHER, is_active: true });
+      mockUsersService.create.mockResolvedValue({
+        id: '1',
+        ...createUserDto,
+        password_hash: 'hashed-pass',
+        role: UserRole.RESEARCHER,
+        is_active: true,
+      });
 
-      await controller.create(createUserDto as any);
+      await controller.create(createUserDto);
 
       expect(mockUsersService.create).toHaveBeenCalledWith({
         name: 'Test',
@@ -112,19 +132,36 @@ describe('UsersController', () => {
 
   describe('setupAdmin', () => {
     it('should create admin bypass when token is valid', async () => {
-      const createUserDto = { name: 'Admin', access_code: 'admin', password: 'pass', role: UserRole.ADMIN };
-      mockUsersService.createAdminBypass.mockResolvedValue({ id: '1', ...createUserDto });
+      const createUserDto = {
+        name: 'Admin',
+        access_code: 'admin',
+        password: 'pass',
+        role: UserRole.ADMIN,
+      };
+      mockUsersService.createAdminBypass.mockResolvedValue({
+        id: '1',
+        ...createUserDto,
+      });
 
-      const result = await controller.setupAdmin(createUserDto as any, 'test-token');
+      const result = await controller.setupAdmin(createUserDto, 'test-token');
 
-      expect(mockUsersService.createAdminBypass).toHaveBeenCalledWith(createUserDto);
+      expect(mockUsersService.createAdminBypass).toHaveBeenCalledWith(
+        createUserDto,
+      );
       expect(result).toEqual({ id: '1', ...createUserDto });
     });
 
     it('should throw UnauthorizedException when token is invalid', async () => {
-      const createUserDto = { name: 'Admin', access_code: 'admin', password: 'pass', role: UserRole.ADMIN };
+      const createUserDto = {
+        name: 'Admin',
+        access_code: 'admin',
+        password: 'pass',
+        role: UserRole.ADMIN,
+      };
 
-      await expect(controller.setupAdmin(createUserDto as any, 'wrong-token')).rejects.toThrow(UnauthorizedException);
+      await expect(
+        controller.setupAdmin(createUserDto as any, 'wrong-token'),
+      ).rejects.toThrow(UnauthorizedException);
     });
   });
 

@@ -1,14 +1,24 @@
-import { Controller, Get, Post, Put, Delete, Patch, Body, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Patch,
+  Body,
+  Param,
+  UseGuards,
+} from '@nestjs/common';
 import { SurveysService } from './surveys.service';
 import { CreateSurveyDto } from './dto/create-survey.dto';
-import { AuthGuard } from '@nestjs/passport'; 
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('surveys')
 export class SurveysController {
   constructor(private readonly surveysService: SurveysService) {}
 
   // ROTA: POST http://localhost:3000/surveys
-  @UseGuards(AuthGuard('jwt')) 
+  @UseGuards(AuthGuard('jwt'))
   @Post()
   create(@Body() createSurveyDto: CreateSurveyDto) {
     return this.surveysService.create(createSurveyDto);

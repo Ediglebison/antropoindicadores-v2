@@ -2,7 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { User, UserRole } from './user.entity';
-import { ConflictException, InternalServerErrorException } from '@nestjs/common';
+import {
+  ConflictException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
 jest.mock('bcrypt');
@@ -32,7 +35,7 @@ describe('UsersService', () => {
 
     service = module.get<UsersService>(UsersService);
   });
-  
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -58,8 +61,13 @@ describe('UsersService', () => {
     it('should create an admin user', async () => {
       const body = { name: 'Admin', access_code: 'admin1', password: 'pass' };
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashed_pass');
-      
-      const expectedUser = { ...body, access_code: 'ADMIN1', password_hash: 'hashed_pass', role: UserRole.ADMIN };
+
+      const expectedUser = {
+        ...body,
+        access_code: 'ADMIN1',
+        password_hash: 'hashed_pass',
+        role: UserRole.ADMIN,
+      };
       mockRepository.create.mockReturnValue(expectedUser);
       mockRepository.save.mockResolvedValue({ id: '1', ...expectedUser });
 
@@ -84,7 +92,9 @@ describe('UsersService', () => {
 
       const result = await service.findOneByCode('code1');
 
-      expect(mockRepository.findOne).toHaveBeenCalledWith({ where: { access_code: 'CODE1' } });
+      expect(mockRepository.findOne).toHaveBeenCalledWith({
+        where: { access_code: 'CODE1' },
+      });
       expect(result).toEqual(user);
     });
   });
@@ -96,7 +106,9 @@ describe('UsersService', () => {
 
       const result = await service.findOneById('1');
 
-      expect(mockRepository.findOne).toHaveBeenCalledWith({ where: { id: '1' } });
+      expect(mockRepository.findOne).toHaveBeenCalledWith({
+        where: { id: '1' },
+      });
       expect(result).toEqual(user);
     });
   });
@@ -122,7 +134,10 @@ describe('UsersService', () => {
 
       const result = await service.create(dto);
 
-      expect(mockRepository.create).toHaveBeenCalledWith({ name: 'User', access_code: 'USR' });
+      expect(mockRepository.create).toHaveBeenCalledWith({
+        name: 'User',
+        access_code: 'USR',
+      });
       expect(mockRepository.save).toHaveBeenCalled();
       expect(result).toHaveProperty('id', '1');
     });
@@ -131,14 +146,18 @@ describe('UsersService', () => {
       mockRepository.save.mockRejectedValue({ code: '23505' });
       mockRepository.create.mockReturnValue({ access_code: 'USR' });
 
-      await expect(service.create({ access_code: 'usr' })).rejects.toThrow(ConflictException);
+      await expect(service.create({ access_code: 'usr' })).rejects.toThrow(
+        ConflictException,
+      );
     });
 
     it('should throw InternalServerErrorException on other db errors', async () => {
       mockRepository.save.mockRejectedValue(new Error('Unexpected error'));
       mockRepository.create.mockReturnValue({ access_code: 'USR' });
 
-      await expect(service.create({ access_code: 'usr' })).rejects.toThrow(InternalServerErrorException);
+      await expect(service.create({ access_code: 'usr' })).rejects.toThrow(
+        InternalServerErrorException,
+      );
     });
   });
 
@@ -164,7 +183,9 @@ describe('UsersService', () => {
 
       const result = await service.update('1', { access_code: 'USER2' });
 
-      expect(mockRepository.update).toHaveBeenCalledWith('1', { access_code: 'USER2' });
+      expect(mockRepository.update).toHaveBeenCalledWith('1', {
+        access_code: 'USER2',
+      });
       expect(result).toEqual(updatedUser);
     });
 
@@ -172,23 +193,33 @@ describe('UsersService', () => {
       const user = { id: '1', access_code: 'USER1' };
       mockRepository.findOne.mockResolvedValueOnce(user);
       mockRepository.update.mockResolvedValue({ affected: 1 });
-      const updatedUser = { id: '1', access_code: 'USER1', password_hash: 'hashed_new' };
+      const updatedUser = {
+        id: '1',
+        access_code: 'USER1',
+        password_hash: 'hashed_new',
+      };
       mockRepository.findOne.mockResolvedValueOnce(updatedUser);
 
       (bcrypt.genSalt as jest.Mock).mockResolvedValue('salt');
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashed_new');
 
-      const result = await service.update('1', { password: 'new_password' } as any);
+      const result = await service.update('1', {
+        password: 'new_password',
+      });
 
       expect(bcrypt.hash).toHaveBeenCalledWith('new_password', 'salt');
-      expect(mockRepository.update).toHaveBeenCalledWith('1', { password_hash: 'hashed_new' });
+      expect(mockRepository.update).toHaveBeenCalledWith('1', {
+        password_hash: 'hashed_new',
+      });
       expect(result).toEqual(updatedUser);
     });
 
     it('should throw error if user not found to update', async () => {
       mockRepository.findOne.mockResolvedValueOnce(null);
 
-      await expect(service.update('1', { name: 'test' })).rejects.toThrow('Usuário não encontrado');
+      await expect(service.update('1', { name: 'test' })).rejects.toThrow(
+        'Usuário não encontrado',
+      );
     });
   });
 });

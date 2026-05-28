@@ -12,7 +12,7 @@ import { User } from './users/user.entity';
 import { Location } from './locations/entities/location.entity';
 import { Survey } from './surveys/entities/survey.entity';
 import { LocationsModule } from './locations/locations.module';
-import { ResponsesModule } from './responses/responses.module'
+import { ResponsesModule } from './responses/responses.module';
 
 import { Response } from './responses/entities/response.entity';
 import { SurveysModule } from './surveys/surveys.module';
@@ -22,18 +22,26 @@ import { SyncModule } from './sync/sync.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    ThrottlerModule.forRoot([{
-      ttl: 60000,
-      limit: 10,
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 10,
+      },
+    ]),
     TypeOrmModule.forRootAsync({
       useFactory: () => {
         if (process.env.DATABASE_URL) {
-          const isFly = process.env.DATABASE_URL.includes('flycast') || process.env.DATABASE_URL.includes('internal');
+          const isFly =
+            process.env.DATABASE_URL.includes('flycast') ||
+            process.env.DATABASE_URL.includes('internal');
           return {
             type: 'postgres',
             url: process.env.DATABASE_URL,
-            ssl: isFly ? false : (process.env.DATABASE_URL.includes('localhost') ? false : { rejectUnauthorized: false }),
+            ssl: isFly
+              ? false
+              : process.env.DATABASE_URL.includes('localhost')
+                ? false
+                : { rejectUnauthorized: false },
             entities: [User, Location, Survey, Response],
             autoLoadEntities: true,
             synchronize: true,
@@ -52,13 +60,13 @@ import { SyncModule } from './sync/sync.module';
           synchronize: true,
         };
       },
-    }), 
+    }),
     UsersModule,
     AuthModule,
     SurveysModule,
     LocationsModule,
     ResponsesModule,
-    SyncModule
+    SyncModule,
   ],
   controllers: [AppController],
   providers: [

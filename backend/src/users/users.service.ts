@@ -1,4 +1,8 @@
-import { Injectable, ConflictException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, UserRole } from './user.entity';
@@ -37,7 +41,9 @@ export class UsersService {
   }
 
   async findOneByCode(access_code: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { access_code: access_code.toUpperCase() } });
+    return this.usersRepository.findOne({
+      where: { access_code: access_code.toUpperCase() },
+    });
   }
 
   async findOneById(id: string): Promise<User | null> {
@@ -53,7 +59,7 @@ export class UsersService {
       if (data.access_code) {
         data.access_code = data.access_code.toUpperCase();
       }
-      
+
       const newUser = this.usersRepository.create(data);
       return await this.usersRepository.save(newUser);
     } catch (error) {
@@ -61,8 +67,10 @@ export class UsersService {
       if (dbError.code === '23505') {
         throw new ConflictException('Este código de acesso já está em uso.');
       }
-      console.error("Erro ao salvar usuário:", error);
-      throw new InternalServerErrorException('Erro ao salvar no banco de dados.');
+      console.error('Erro ao salvar usuário:', error);
+      throw new InternalServerErrorException(
+        'Erro ao salvar no banco de dados.',
+      );
     }
   }
 
@@ -70,15 +78,18 @@ export class UsersService {
     await this.usersRepository.delete(id);
   }
 
-  async update(id: string, data: Partial<User> & { password?: string }): Promise<User> {
+  async update(
+    id: string,
+    data: Partial<User> & { password?: string },
+  ): Promise<User> {
     const user = await this.findOneById(id);
-    
+
     if (!user) {
       throw new Error('Usuário não encontrado');
     }
 
     const updateData = { ...data };
-    
+
     if (updateData.password) {
       const salt = await bcrypt.genSalt();
       updateData.password_hash = await bcrypt.hash(updateData.password, salt);
@@ -86,13 +97,13 @@ export class UsersService {
     }
 
     await this.usersRepository.update(id, updateData);
-    
+
     const updatedUser = await this.findOneById(id);
 
     if (!updatedUser) {
       throw new Error('Erro ao recuperar usuário após atualização.');
     }
-    
+
     return updatedUser;
   }
 }

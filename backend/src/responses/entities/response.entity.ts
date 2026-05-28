@@ -1,4 +1,11 @@
-import { Entity, PrimaryColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { User } from '../../users/user.entity';
 import { Survey } from '../../surveys/entities/survey.entity';
 import { Location } from '../../locations/entities/location.entity';
@@ -27,7 +34,7 @@ export class Response {
   synced_at: Date;
 
   // --- RELACIONAMENTOS ---
-  
+
   @ManyToOne(() => User)
   @JoinColumn({ name: 'researcher_id' })
   researcher: User;

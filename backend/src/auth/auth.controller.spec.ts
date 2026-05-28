@@ -46,18 +46,26 @@ describe('AuthController', () => {
 
       const result = await controller.login(loginDto);
 
-      expect(authService.validateUser).toHaveBeenCalledWith(loginDto.access_code, loginDto.password);
+      expect(authService.validateUser).toHaveBeenCalledWith(
+        loginDto.access_code,
+        loginDto.password,
+      );
       expect(authService.login).toHaveBeenCalledWith(user);
       expect(result).toEqual(tokenResult);
     });
 
     it('should throw UnauthorizedException if credentials are invalid', async () => {
       const loginDto = { access_code: '123', password: 'wrongpassword' };
-      
+
       mockAuthService.validateUser.mockResolvedValue(null);
 
-      await expect(controller.login(loginDto)).rejects.toThrow(UnauthorizedException);
-      expect(authService.validateUser).toHaveBeenCalledWith(loginDto.access_code, loginDto.password);
+      await expect(controller.login(loginDto)).rejects.toThrow(
+        UnauthorizedException,
+      );
+      expect(authService.validateUser).toHaveBeenCalledWith(
+        loginDto.access_code,
+        loginDto.password,
+      );
       expect(authService.login).not.toHaveBeenCalled();
     });
   });

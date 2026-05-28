@@ -12,7 +12,11 @@ describe('SyncService', () => {
 
   const mockSurveyRepo = { find: jest.fn() };
   const mockLocationRepo = { find: jest.fn() };
-  const mockResponseRepo = { save: jest.fn(), update: jest.fn(), delete: jest.fn() };
+  const mockResponseRepo = {
+    save: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  };
   const mockUserRepo = { find: jest.fn() };
 
   beforeEach(async () => {
@@ -40,20 +44,30 @@ describe('SyncService', () => {
   describe('pullChanges', () => {
     it('should format and return created and updated entities', async () => {
       const lastPulledAt = 1000;
-      
+
       const surveys = [
-        { id: '1', created_at: new Date(2000), updated_at: new Date(2000), questions_schema: { q: 1 } }, // created
-        { id: '2', created_at: new Date(500), updated_at: new Date(2000), questions_schema: 'string_schema' } // updated
+        {
+          id: '1',
+          created_at: new Date(2000),
+          updated_at: new Date(2000),
+          questions_schema: { q: 1 },
+        }, // created
+        {
+          id: '2',
+          created_at: new Date(500),
+          updated_at: new Date(2000),
+          questions_schema: 'string_schema',
+        }, // updated
       ];
       mockSurveyRepo.find.mockResolvedValue(surveys);
 
       const locations = [
-        { id: '1', created_at: new Date(2000), updated_at: new Date(2000) } // created
+        { id: '1', created_at: new Date(2000), updated_at: new Date(2000) }, // created
       ];
       mockLocationRepo.find.mockResolvedValue(locations);
 
       const users = [
-        { id: '1', created_at: new Date(2000) } // created
+        { id: '1', created_at: new Date(2000) }, // created
       ];
       mockUserRepo.find.mockResolvedValue(users);
 
@@ -65,8 +79,12 @@ describe('SyncService', () => {
 
       expect(result.changes.surveys.created.length).toBe(1);
       expect(result.changes.surveys.updated.length).toBe(1);
-      expect(result.changes.surveys.created[0].questions_schema).toBe('{"q":1}');
-      expect(result.changes.surveys.updated[0].questions_schema).toBe('string_schema');
+      expect(result.changes.surveys.created[0].questions_schema).toBe(
+        '{"q":1}',
+      );
+      expect(result.changes.surveys.updated[0].questions_schema).toBe(
+        'string_schema',
+      );
 
       expect(result.changes.locations.created.length).toBe(1);
       expect(result.changes.users.created.length).toBe(1);
@@ -80,31 +98,33 @@ describe('SyncService', () => {
         responses: {
           created: [{ id: '1', created_at: 1000, updated_at: 1000 }],
           updated: [{ id: '2', created_at: 1000, updated_at: 1000 }],
-          deleted: ['3']
-        }
+          deleted: ['3'],
+        },
       };
 
       const result = await service.pushChanges(changes, 1000);
 
-      expect(mockResponseRepo.save).toHaveBeenCalledWith([{
-        id: '1',
-        created_at: new Date(1000),
-        updated_at: new Date(1000)
-      }]);
+      expect(mockResponseRepo.save).toHaveBeenCalledWith([
+        {
+          id: '1',
+          created_at: new Date(1000),
+          updated_at: new Date(1000),
+        },
+      ]);
       expect(mockResponseRepo.update).toHaveBeenCalledWith('2', {
         id: '2',
         created_at: new Date(1000),
-        updated_at: new Date(1000)
+        updated_at: new Date(1000),
       });
       expect(mockResponseRepo.delete).toHaveBeenCalledWith(['3']);
       expect(result).toEqual({ success: true });
     });
 
     it('should handle empty changes', async () => {
-       const changes = { responses: null };
-       const result = await service.pushChanges(changes, 1000);
-       expect(result).toEqual({ success: true });
-       expect(mockResponseRepo.save).not.toHaveBeenCalled();
+      const changes = { responses: null };
+      const result = await service.pushChanges(changes, 1000);
+      expect(result).toEqual({ success: true });
+      expect(mockResponseRepo.save).not.toHaveBeenCalled();
     });
   });
 });

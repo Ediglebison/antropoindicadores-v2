@@ -15,7 +15,7 @@ export class CreateSurveyDto {
 
   // Aceita qualquer estrutura de JSON (array de perguntas)
   @IsOptional()
-  questions_schema: any; 
+  questions_schema: any;
 
   @IsOptional()
   @IsBoolean()

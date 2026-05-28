@@ -23,7 +23,7 @@ export class SurveysService {
   // Lista todos os questionários
   async findAll(): Promise<Survey[]> {
     return this.surveysRepository.find({
-      order: { created_at: 'DESC' } // Mostra os mais recentes primeiro
+      order: { created_at: 'DESC' }, // Mostra os mais recentes primeiro
     });
   }
 

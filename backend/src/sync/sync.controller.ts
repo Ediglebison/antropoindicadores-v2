@@ -3,7 +3,7 @@ import { SyncService } from './sync.service';
 import { AuthGuard } from '@nestjs/passport';
 
 // Se quiser proteger a rota com JWT (recomendado), descomente a linha abaixo:
-// @UseGuards(AuthGuard('jwt')) 
+// @UseGuards(AuthGuard('jwt'))
 @Controller('sync')
 export class SyncController {
   constructor(private readonly syncService: SyncService) {}
@@ -13,8 +13,9 @@ export class SyncController {
   @Get()
   async pull(@Query('lastPulledAt') lastPulledAt: string) {
     // Se for a primeira vez (app recém instalado), o lastPulledAt vem vazio ou "0"
-    const timestamp = lastPulledAt === 'null' || !lastPulledAt ? 0 : parseInt(lastPulledAt, 10);
-    
+    const timestamp =
+      lastPulledAt === 'null' || !lastPulledAt ? 0 : parseInt(lastPulledAt, 10);
+
     return await this.syncService.pullChanges(timestamp);
   }
 
@@ -22,11 +23,11 @@ export class SyncController {
   @Post()
   async push(@Body() body: any) {
     const { changes, lastPulledAt } = body;
-    
+
     const timestamp = parseInt(lastPulledAt, 10);
     await this.syncService.pushChanges(changes, timestamp);
 
     // O WatermelonDB só precisa saber que deu Status 200 OK
-    return 'Sync Push OK'; 
+    return 'Sync Push OK';
   }
 }

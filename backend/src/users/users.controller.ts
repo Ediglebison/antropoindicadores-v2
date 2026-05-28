@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, UseGuards, Param, Delete, Patch, Headers, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  UseGuards,
+  Param,
+  Delete,
+  Patch,
+  Headers,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User, UserRole } from './user.entity';
 import { RolesGuard } from '../auth/roles.guard';
@@ -34,7 +45,7 @@ export class UsersController {
   @Post()
   async create(@Body() body: CreateUserDto) {
     const password_hash = await this.usersService.hashPassword(body.password);
-    
+
     return this.usersService.create({
       name: body.name,
       access_code: body.access_code,
@@ -45,7 +56,10 @@ export class UsersController {
   }
 
   @Post('setup-admin')
-  async setupAdmin(@Body() body: CreateUserDto, @Headers('x-setup-token') setupToken: string) {
+  async setupAdmin(
+    @Body() body: CreateUserDto,
+    @Headers('x-setup-token') setupToken: string,
+  ) {
     if (!process.env.SETUP_TOKEN || setupToken !== process.env.SETUP_TOKEN) {
       throw new UnauthorizedException('Token de setup inválido ou ausente.');
     }

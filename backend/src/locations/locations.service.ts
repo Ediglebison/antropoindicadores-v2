@@ -18,7 +18,8 @@ export class LocationsService {
       const location = this.repo.create(data);
       return await this.repo.save(location);
     } catch (error) {
-      if (error.code === '23505') { // Erro de duplicidade no Postgres
+      if (error.code === '23505') {
+        // Erro de duplicidade no Postgres
         throw new ConflictException('Já existe um local com este código.');
       }
       console.error('Erro ao criar location:', error);

@@ -2,7 +2,6 @@ import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { AdminRoute } from './index';
-import * as router from 'react-router-dom';
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');

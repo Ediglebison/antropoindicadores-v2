@@ -39,8 +39,18 @@ describe('ResponsesService', () => {
 
   describe('create', () => {
     it('should create and save a new response', async () => {
-      const dto = { answers_json: '{"q": "a"}', survey_id: 's1', location_id: 'l1' };
-      const expectedResponse = { id: '123', data_payload: dto.answers_json, survey_id: dto.survey_id, location_id: dto.location_id, researcher_id: 'r1' };
+      const dto = {
+        answers_json: '{"q": "a"}',
+        survey_id: 's1',
+        location_id: 'l1',
+      };
+      const expectedResponse = {
+        id: '123',
+        data_payload: dto.answers_json,
+        survey_id: dto.survey_id,
+        location_id: dto.location_id,
+        researcher_id: 'r1',
+      };
       mockRepository.create.mockReturnValue(expectedResponse);
       mockRepository.save.mockResolvedValue(expectedResponse);
 
@@ -65,7 +75,7 @@ describe('ResponsesService', () => {
 
       expect(mockRepository.find).toHaveBeenCalledWith({
         relations: ['survey', 'location', 'researcher'],
-        order: { collected_at: 'DESC' }
+        order: { collected_at: 'DESC' },
       });
       expect(result).toEqual(responses);
     });

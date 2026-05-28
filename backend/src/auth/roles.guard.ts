@@ -9,7 +9,6 @@ export class RolesGuard extends AuthGuard('jwt') implements CanActivate {
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    
     const requiredRoles = this.reflector.getAllAndOverride<string[]>('roles', [
       context.getHandler(),
       context.getClass(),
@@ -20,7 +19,7 @@ export class RolesGuard extends AuthGuard('jwt') implements CanActivate {
     }
 
     const canActivate = await super.canActivate(context);
-    
+
     if (!canActivate) {
       return false;
     }
@@ -31,7 +30,9 @@ export class RolesGuard extends AuthGuard('jwt') implements CanActivate {
 
     // Verificação de segurança: Se o user não existe ou não tem role, bloqueia
     if (!user || !user.role) {
-      console.log("Bloqueio de Role: Usuário sem role definida no token/request");
+      console.log(
+        'Bloqueio de Role: Usuário sem role definida no token/request',
+      );
       return false;
     }
 

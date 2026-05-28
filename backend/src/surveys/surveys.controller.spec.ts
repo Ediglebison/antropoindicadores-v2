@@ -26,9 +26,9 @@ describe('SurveysController', () => {
         },
       ],
     })
-    .overrideGuard(AuthGuard('jwt'))
-    .useValue({ canActivate: () => true })
-    .compile();
+      .overrideGuard(AuthGuard('jwt'))
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<SurveysController>(SurveysController);
     surveysService = module.get<SurveysService>(SurveysService);

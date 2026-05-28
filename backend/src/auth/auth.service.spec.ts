@@ -43,7 +43,12 @@ describe('AuthService', () => {
 
   describe('validateUser', () => {
     it('should return user without password_hash if valid', async () => {
-      const mockUser = { id: '1', access_code: 'USER1', password_hash: 'hashed', role: 'ADMIN' };
+      const mockUser = {
+        id: '1',
+        access_code: 'USER1',
+        password_hash: 'hashed',
+        role: 'ADMIN',
+      };
       mockUsersService.findOneByCode.mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
@@ -55,7 +60,12 @@ describe('AuthService', () => {
     });
 
     it('should return null if password mismatch', async () => {
-      const mockUser = { id: '1', access_code: 'USER1', password_hash: 'hashed', role: 'ADMIN' };
+      const mockUser = {
+        id: '1',
+        access_code: 'USER1',
+        password_hash: 'hashed',
+        role: 'ADMIN',
+      };
       mockUsersService.findOneByCode.mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
@@ -76,7 +86,12 @@ describe('AuthService', () => {
 
   describe('login', () => {
     it('should return access_token and user info', async () => {
-      const mockUser = { id: '1', name: 'Test User', access_code: 'USER1', role: 'ADMIN' };
+      const mockUser = {
+        id: '1',
+        name: 'Test User',
+        access_code: 'USER1',
+        role: 'ADMIN',
+      };
       mockJwtService.sign.mockReturnValue('mock-jwt-token');
 
       const result = await service.login(mockUser);
@@ -92,8 +107,8 @@ describe('AuthService', () => {
           id: '1',
           name: 'Test User',
           access_code: 'USER1',
-          role: 'ADMIN'
-        }
+          role: 'ADMIN',
+        },
       });
     });
   });

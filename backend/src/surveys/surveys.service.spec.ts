@@ -66,7 +66,9 @@ describe('SurveysService', () => {
 
       const result = await service.findAll();
 
-      expect(mockRepository.find).toHaveBeenCalledWith({ order: { created_at: 'DESC' } });
+      expect(mockRepository.find).toHaveBeenCalledWith({
+        order: { created_at: 'DESC' },
+      });
       expect(result).toEqual(surveys);
     });
   });
@@ -78,7 +80,9 @@ describe('SurveysService', () => {
 
       const result = await service.findOne('1');
 
-      expect(mockRepository.findOne).toHaveBeenCalledWith({ where: { id: '1' } });
+      expect(mockRepository.findOne).toHaveBeenCalledWith({
+        where: { id: '1' },
+      });
       expect(result).toEqual(survey);
     });
   });
@@ -91,8 +95,13 @@ describe('SurveysService', () => {
 
       await service.toggleActive('1');
 
-      expect(mockRepository.findOne).toHaveBeenCalledWith({ where: { id: '1' } });
-      expect(mockRepository.save).toHaveBeenCalledWith({ id: '1', is_active: false });
+      expect(mockRepository.findOne).toHaveBeenCalledWith({
+        where: { id: '1' },
+      });
+      expect(mockRepository.save).toHaveBeenCalledWith({
+        id: '1',
+        is_active: false,
+      });
     });
 
     it('should do nothing if survey not found', async () => {
@@ -112,8 +121,12 @@ describe('SurveysService', () => {
 
       const result = await service.update('1', { title: 'Updated' });
 
-      expect(mockRepository.update).toHaveBeenCalledWith('1', { title: 'Updated' });
-      expect(mockRepository.findOne).toHaveBeenCalledWith({ where: { id: '1' } });
+      expect(mockRepository.update).toHaveBeenCalledWith('1', {
+        title: 'Updated',
+      });
+      expect(mockRepository.findOne).toHaveBeenCalledWith({
+        where: { id: '1' },
+      });
       expect(result).toEqual(survey);
     });
   });
