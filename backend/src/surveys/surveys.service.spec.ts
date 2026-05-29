@@ -21,7 +21,7 @@ describe('SurveysService', () => {
         SurveysService,
         {
           provide: getRepositoryToken(Survey),
-          useValue: mockSurveyRepository,
+          useValue: mockRepository,
         },
       ],
     }).compile();

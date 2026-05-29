@@ -62,7 +62,7 @@ describe('SyncController', () => {
 
       const result = await controller.push(body);
 
-      expect(syncService.pushChanges).toHaveBeenCalledWith({}, 1712619000000);
+      expect(syncService.pushChanges).toHaveBeenCalledWith({});
       expect(result).toBe('Sync Push OK');
     });
   });

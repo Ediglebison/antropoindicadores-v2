@@ -18,7 +18,7 @@ describe('ResponsesService', () => {
         ResponsesService,
         {
           provide: getRepositoryToken(Response),
-          useValue: mockResponseRepository,
+          useValue: mockRepository,
         },
       ],
     }).compile();

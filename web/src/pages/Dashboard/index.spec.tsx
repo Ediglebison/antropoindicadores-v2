@@ -71,7 +71,7 @@ describe('Dashboard Component', () => {
       expect(screen.queryByText(/Carregando estatísticas.../i)).not.toBeInTheDocument();
     });
 
-    expect(consoleSpy).toHaveBeenCalledWith("Erro ao carregar dados do dashboard", expect.any(Error));
+    expect(consoleSpy).toHaveBeenCalledWith("Erro ao carregar dashboard:", expect.any(Error));
     consoleSpy.mockRestore();
   });
 });
