@@ -17,17 +17,17 @@ export function Responses() {
   const [selectedResponse, setSelectedResponse] = useState<ResponseData | null>(null);
 
   useEffect(() => {
+    async function loadResponses() {
+      try {
+        const res = await api.get('/responses');
+        setResponses(res.data);
+      } catch (error) {
+        console.error("Erro ao carregar respostas", error);
+      }
+    }
+
     loadResponses();
   }, []);
-
-  async function loadResponses() {
-    try {
-      const res = await api.get('/responses');
-      setResponses(res.data);
-    } catch (error) {
-      console.error("Erro ao carregar respostas", error);
-    }
-  }
 
   // Formata a data para o padrão brasileiro
   function formatDate(isoString: string) {

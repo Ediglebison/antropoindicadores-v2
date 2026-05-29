@@ -1,6 +1,5 @@
-import { Controller, Get, Post, Body, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query } from '@nestjs/common';
 import { SyncService } from './sync.service';
-import { AuthGuard } from '@nestjs/passport';
 
 // Se quiser proteger a rota com JWT (recomendado), descomente a linha abaixo:
 // @UseGuards(AuthGuard('jwt'))
@@ -22,10 +21,9 @@ export class SyncController {
   // ROTA POST: O Celular chama essa rota no PUSH
   @Post()
   async push(@Body() body: any) {
-    const { changes, lastPulledAt } = body;
+    const { changes } = body;
 
-    const timestamp = parseInt(lastPulledAt, 10);
-    await this.syncService.pushChanges(changes, timestamp);
+    await this.syncService.pushChanges(changes);
 
     // O WatermelonDB só precisa saber que deu Status 200 OK
     return 'Sync Push OK';

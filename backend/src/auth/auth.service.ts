@@ -1,7 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { User } from '../users/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -10,19 +11,21 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  // Passo 1: Valida se o usuário existe e a senha bate
-  async validateUser(access_code: string, pass: string): Promise<any> {
+  async validateUser(
+    access_code: string,
+    pass: string,
+  ): Promise<Partial<User> | null> {
     const user = await this.usersService.findOneByCode(access_code);
 
     if (user && (await bcrypt.compare(pass, user.password_hash))) {
-      // Remove a senha do objeto de retorno por segurança
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password_hash, ...result } = user;
       return result;
     }
     return null;
   }
 
-  async login(user: any) {
+  login(user: User | Partial<User>) {
     const payload = {
       username: user.access_code,
       sub: user.id,

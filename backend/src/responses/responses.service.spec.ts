@@ -2,11 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ResponsesService } from './responses.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Response } from './entities/response.entity';
-import { Repository } from 'typeorm';
 
 describe('ResponsesService', () => {
   let service: ResponsesService;
-  let repository: Repository<Response>;
 
   const mockRepository = {
     create: jest.fn(),
@@ -20,13 +18,12 @@ describe('ResponsesService', () => {
         ResponsesService,
         {
           provide: getRepositoryToken(Response),
-          useValue: mockRepository,
+          useValue: mockResponseRepository,
         },
       ],
     }).compile();
 
     service = module.get<ResponsesService>(ResponsesService);
-    repository = module.get<Repository<Response>>(getRepositoryToken(Response));
   });
 
   afterEach(() => {

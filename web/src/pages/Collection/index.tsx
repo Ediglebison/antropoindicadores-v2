@@ -22,22 +22,22 @@ export function Collection() {
   const [answers, setAnswers] = useState<Record<string, any>>({});
 
   useEffect(() => {
+    async function loadInitialData() {
+      try {
+        const [locRes, surRes] = await Promise.all([
+          api.get('/locations'),
+          api.get('/surveys')
+        ]);
+        setLocations(locRes.data);
+        // Filtra apenas questionários ativos para o pesquisador
+        setSurveys(surRes.data.filter((s: Survey) => s.is_active));
+      } catch (error) {
+        console.error("Erro ao carregar dados", error);
+      }
+    }
+
     loadInitialData();
   }, []);
-
-  async function loadInitialData() {
-    try {
-      const [locRes, surRes] = await Promise.all([
-        api.get('/locations'),
-        api.get('/surveys')
-      ]);
-      setLocations(locRes.data);
-      // Filtra apenas questionários ativos para o pesquisador
-      setSurveys(surRes.data.filter((s: Survey) => s.is_active));
-    } catch (error) {
-      console.error("Erro ao carregar dados", error);
-    }
-  }
 
   function handleStart() {
     if (!selectedLocationId || !selectedSurveyId) {

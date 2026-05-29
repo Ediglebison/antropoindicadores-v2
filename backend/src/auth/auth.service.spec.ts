@@ -8,8 +8,6 @@ jest.mock('bcrypt');
 
 describe('AuthService', () => {
   let service: AuthService;
-  let usersService: UsersService;
-  let jwtService: JwtService;
 
   const mockUsersService = {
     findOneByCode: jest.fn(),
@@ -29,8 +27,6 @@ describe('AuthService', () => {
     }).compile();
 
     service = module.get<AuthService>(AuthService);
-    usersService = module.get<UsersService>(UsersService);
-    jwtService = module.get<JwtService>(JwtService);
   });
 
   afterEach(() => {
@@ -54,7 +50,7 @@ describe('AuthService', () => {
 
       const result = await service.validateUser('USER1', 'password');
 
-      expect(usersService.findOneByCode).toHaveBeenCalledWith('USER1');
+      expect(mockUsersService.findOneByCode).toHaveBeenCalledWith('USER1');
       expect(bcrypt.compare).toHaveBeenCalledWith('password', 'hashed');
       expect(result).toEqual({ id: '1', access_code: 'USER1', role: 'ADMIN' });
     });
@@ -94,9 +90,11 @@ describe('AuthService', () => {
       };
       mockJwtService.sign.mockReturnValue('mock-jwt-token');
 
-      const result = await service.login(mockUser);
+      // Note: service.login doesn't await in new code, but `await` in test won't hurt,
+      // or we can remove await. I will remove await to be safe against unnecessary await rules.
+      const result = service.login(mockUser as any);
 
-      expect(jwtService.sign).toHaveBeenCalledWith({
+      expect(mockJwtService.sign).toHaveBeenCalledWith({
         username: 'USER1',
         sub: '1',
         role: 'ADMIN',

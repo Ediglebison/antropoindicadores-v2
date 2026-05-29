@@ -7,7 +7,6 @@ import { RolesGuard } from '../auth/roles.guard';
 
 describe('UsersController', () => {
   let controller: UsersController;
-  let usersService: UsersService;
 
   const mockUsersService = {
     update: jest.fn(),

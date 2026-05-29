@@ -5,7 +5,6 @@ import { Survey } from '../surveys/entities/survey.entity';
 import { Location } from '../locations/entities/location.entity';
 import { Response } from '../responses/entities/response.entity';
 import { User } from '../users/user.entity';
-import { Repository } from 'typeorm';
 
 describe('SyncService', () => {
   let service: SyncService;
@@ -102,7 +101,7 @@ describe('SyncService', () => {
         },
       };
 
-      const result = await service.pushChanges(changes, 1000);
+      const result = await service.pushChanges(changes);
 
       expect(mockResponseRepo.save).toHaveBeenCalledWith([
         {
@@ -122,7 +121,7 @@ describe('SyncService', () => {
 
     it('should handle empty changes', async () => {
       const changes = { responses: null };
-      const result = await service.pushChanges(changes, 1000);
+      const result = await service.pushChanges(changes);
       expect(result).toEqual({ success: true });
       expect(mockResponseRepo.save).not.toHaveBeenCalled();
     });

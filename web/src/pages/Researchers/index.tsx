@@ -47,8 +47,9 @@ export function Researchers() {
       
       handleCancelEdit(); // Limpa o form
       loadUsers(); // Recarrega a lista
-    } catch (error) {
+    } catch (err) {
       alert('Erro ao salvar. Verifique se o código já existe.');
+      console.error(err);
     }
   }
 

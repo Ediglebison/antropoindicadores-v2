@@ -5,7 +5,6 @@ import { UnauthorizedException } from '@nestjs/common';
 
 describe('AuthController', () => {
   let controller: AuthController;
-  let authService: AuthService;
 
   const mockAuthService = {
     validateUser: jest.fn(),
@@ -24,7 +23,6 @@ describe('AuthController', () => {
     }).compile();
 
     controller = module.get<AuthController>(AuthController);
-    authService = module.get<AuthService>(AuthService);
   });
 
   afterEach(() => {
@@ -46,11 +44,11 @@ describe('AuthController', () => {
 
       const result = await controller.login(loginDto);
 
-      expect(authService.validateUser).toHaveBeenCalledWith(
+      expect(mockAuthService.validateUser).toHaveBeenCalledWith(
         loginDto.access_code,
         loginDto.password,
       );
-      expect(authService.login).toHaveBeenCalledWith(user);
+      expect(mockAuthService.login).toHaveBeenCalledWith(user);
       expect(result).toEqual(tokenResult);
     });
 
@@ -62,11 +60,11 @@ describe('AuthController', () => {
       await expect(controller.login(loginDto)).rejects.toThrow(
         UnauthorizedException,
       );
-      expect(authService.validateUser).toHaveBeenCalledWith(
+      expect(mockAuthService.validateUser).toHaveBeenCalledWith(
         loginDto.access_code,
         loginDto.password,
       );
-      expect(authService.login).not.toHaveBeenCalled();
+      expect(mockAuthService.login).not.toHaveBeenCalled();
     });
   });
 });

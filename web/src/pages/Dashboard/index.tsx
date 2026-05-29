@@ -17,47 +17,46 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    async function loadDashboardData() {
+      try {
+        const [resResponses, resSurveys, resLocations] = await Promise.all([
+          api.get('/responses'),
+          api.get('/surveys'),
+          api.get('/locations')
+        ]);
+
+        const responsesData = resResponses.data;
+
+        setStats({
+          totalResponses: responsesData.length,
+          totalSurveys: resSurveys.data.length,
+          totalLocations: resLocations.data.length
+        });
+
+        setRecentResponses(responsesData.slice(0, 5));
+
+        // Lógica do Gráfico
+        const agrupamento: Record<string, number> = {};
+        responsesData.forEach((resp: any) => {
+          const titulo = resp.survey?.title || 'Sem título';
+          agrupamento[titulo] = (agrupamento[titulo] || 0) + 1;
+        });
+        
+        const dadosFormatadosGrafico = Object.keys(agrupamento).map(chave => ({
+          name: chave,
+          Quantidade: agrupamento[chave]
+        }));
+        
+        setChartData(dadosFormatadosGrafico);
+      } catch (error) {
+        console.error("Erro ao carregar dashboard:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
     loadDashboardData();
   }, []);
-
-  async function loadDashboardData() {
-    try {
-      const [resResponses, resSurveys, resLocations] = await Promise.all([
-        api.get('/responses'),
-        api.get('/surveys'),
-        api.get('/locations')
-      ]);
-
-      const responsesData = resResponses.data;
-
-      setStats({
-        totalResponses: responsesData.length,
-        totalSurveys: resSurveys.data.length,
-        totalLocations: resLocations.data.length
-      });
-
-      setRecentResponses(responsesData.slice(0, 5));
-
-      // Lógica do Gráfico
-      const agrupamento: Record<string, number> = {};
-      responsesData.forEach((resp: any) => {
-        const titulo = resp.survey?.title || 'Sem título';
-        agrupamento[titulo] = (agrupamento[titulo] || 0) + 1;
-      });
-
-      const dadosGrafico = Object.keys(agrupamento).map(chave => ({
-        name: chave,
-        Quantidade: agrupamento[chave]
-      }));
-
-      setChartData(dadosGrafico);
-
-    } catch (error) {
-      console.error("Erro ao carregar dados do dashboard", error);
-    } finally {
-      setLoading(false);
-    }
-  }
 
   function formatDateTime(isoString: string) {
     const date = new Date(isoString);

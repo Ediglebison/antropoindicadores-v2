@@ -26,19 +26,21 @@ function AdminRoute({ children }: { children: JSX.Element }) {
     return <Navigate to="/" />; // Se não tiver os dados, volta pro login
   }
 
+  let user;
   try {
-    const user = JSON.parse(userStorage);
-    
-    if (user.role !== 'ADMIN') {
-      alert("Acesso negado: Apenas administradores podem acessar esta página.");
-      return <Navigate to="/dashboard" replace />;
-    }
-    
-    return children; // Se for admin, libera o acesso ao componente!
+    user = JSON.parse(userStorage);
   } catch (error) {
+    console.error('Error parsing user data:', error);
     // Se der qualquer erro ao ler os dados do usuário, expulsa por segurança
     return <Navigate to="/" />;
   }
+
+  if (user.role !== 'ADMIN') {
+    alert("Acesso negado: Apenas administradores podem acessar esta página.");
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return children; // Se for admin, libera o acesso ao componente!
 }
 
 function App() {

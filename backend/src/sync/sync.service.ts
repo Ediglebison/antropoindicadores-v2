@@ -152,7 +152,7 @@ export class SyncService {
   // ==========================================
   // PUSH: O SERVIDOR RECEBE AS RESPOSTAS DO CAMPO
   // ==========================================
-  async pushChanges(changes: any, lastPulledAt: number) {
+  async pushChanges(changes: any) {
     // Pegamos apenas a "caixa" de respostas enviada pelo celular
     const responsesChanges = changes.responses;
 
