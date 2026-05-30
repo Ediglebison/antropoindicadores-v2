@@ -2,7 +2,20 @@ import { useState, useEffect } from 'react';
 import { api } from '../../services/api';
 import { ClipboardList, MapPin, FileText, Activity } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import './styles.css'; // Certifique-se de que o seu arquivo de CSS nesta pasta se chama styles.css
+
+// Fix leaflet icon issue in react-leaflet
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+});
 
 interface DashboardStats {
   totalResponses: number;
@@ -14,6 +27,7 @@ export function Dashboard() {
   const [stats, setStats] = useState<DashboardStats>({ totalResponses: 0, totalSurveys: 0, totalLocations: 0 });
   const [recentResponses, setRecentResponses] = useState<any[]>([]);
   const [chartData, setChartData] = useState<any[]>([]);
+  const [mapData, setMapData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,6 +48,10 @@ export function Dashboard() {
         });
 
         setRecentResponses(responsesData.slice(0, 5));
+
+        // Dados para o mapa (apenas as coletas que possuem coordenadas)
+        const geolocatedResponses = responsesData.filter((r: any) => r.latitude != null && r.longitude != null);
+        setMapData(geolocatedResponses);
 
         // Lógica do Gráfico
         const agrupamento: Record<string, number> = {};
@@ -107,30 +125,66 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* ÁREA DO GRÁFICO */}
-      <div className="chart-section" style={{ background: '#fff', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
-        <h2 style={{ fontSize: '1.25rem', color: '#1e293b', margin: '0 0 1.5rem 0', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem' }}>
-          Respostas por Questionário
-        </h2>
-        
-        {chartData.length === 0 ? (
-          <p style={{ color: '#64748b', textAlign: 'center' }}>Não há dados suficientes para gerar o gráfico.</p>
-        ) : (
-          <div style={{ width: '100%', height: 350 }}>
-            <ResponsiveContainer>
-              <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" tick={{ fill: '#64748b' }} />
-                <YAxis allowDecimals={false} tick={{ fill: '#64748b' }} />
-                <Tooltip 
-                  cursor={{ fill: '#f1f5f9' }}
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+        {/* MAPA VISUAL */}
+        <div className="map-section" style={{ background: '#fff', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
+          <h2 style={{ fontSize: '1.25rem', color: '#1e293b', margin: '0 0 1.5rem 0', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem' }}>
+            Localização das Coletas
+          </h2>
+          <div style={{ width: '100%', height: 350, borderRadius: '8px', overflow: 'hidden' }}>
+            {mapData.length > 0 ? (
+              <MapContainer 
+                center={[mapData[0].latitude, mapData[0].longitude]} 
+                zoom={10} 
+                style={{ width: '100%', height: '100%' }}
+              >
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
-                <Bar dataKey="Quantidade" fill="#2563eb" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+                {mapData.map((resp: any) => (
+                  <Marker key={resp.id} position={[resp.latitude, resp.longitude]}>
+                    <Popup>
+                      <strong>Questionário:</strong> {resp.survey?.title}<br/>
+                      <strong>Local:</strong> {resp.location?.name}<br/>
+                      <strong>Data:</strong> {formatDateTime(resp.collected_at)}
+                    </Popup>
+                  </Marker>
+                ))}
+              </MapContainer>
+            ) : (
+               <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f8fafc', color: '#64748b' }}>
+                 Nenhuma coordenada geográfica registrada nas coletas ainda.
+               </div>
+            )}
           </div>
-        )}
+        </div>
+
+        {/* ÁREA DO GRÁFICO */}
+        <div className="chart-section" style={{ background: '#fff', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
+          <h2 style={{ fontSize: '1.25rem', color: '#1e293b', margin: '0 0 1.5rem 0', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem' }}>
+            Respostas por Questionário
+          </h2>
+          
+          {chartData.length === 0 ? (
+            <p style={{ color: '#64748b', textAlign: 'center' }}>Não há dados suficientes para gerar o gráfico.</p>
+          ) : (
+            <div style={{ width: '100%', height: 350 }}>
+              <ResponsiveContainer>
+                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="name" tick={{ fill: '#64748b' }} />
+                  <YAxis allowDecimals={false} tick={{ fill: '#64748b' }} />
+                  <Tooltip 
+                    cursor={{ fill: '#f1f5f9' }}
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}
+                  />
+                  <Bar dataKey="Quantidade" fill="#2563eb" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="recent-activity-section">

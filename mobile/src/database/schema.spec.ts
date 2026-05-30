@@ -2,7 +2,7 @@ import { mySchema } from './schema';
 
 describe('Database Schema', () => {
   it('should define the correct version', () => {
-    expect(mySchema.version).toBe(3);
+    expect(mySchema.version).toBe(4);
   });
 
   it('should have tables defined', () => {

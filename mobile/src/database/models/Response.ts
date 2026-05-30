@@ -10,6 +10,12 @@ export default class Response extends Model {
   @field('location_id') 
   locationId!: string
 
+  @field('latitude')
+  latitude?: number
+
+  @field('longitude')
+  longitude?: number
+
   // O WatermelonDB não tem tipo "JSON", então salvamos como string (texto)
   // Na hora de usar na tela, a gente faz um JSON.parse()
   @field('data_payload') 

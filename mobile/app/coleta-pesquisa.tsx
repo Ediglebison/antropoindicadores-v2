@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, ActivityIndicator, TextInput, FlatList, Modal, KeyboardAvoidingView, Platform } from 'react-native';
+import * as LocationLib from 'expo-location';
 import { api } from '../src/services/api';
 import { database } from '../src/database';
 import SideMenu from './side-menu';
@@ -38,6 +39,7 @@ export default function ColetaPesquisa() {
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showSurveyModal, setShowSurveyModal] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState<{ latitude: number, longitude: number } | null>(null);
 
   useEffect(() => {
     loadInitialData();
@@ -126,6 +128,26 @@ export default function ColetaPesquisa() {
     
     setAnswers({});
     setStep(2);
+
+    // Solicita a localização
+    (async () => {
+      let { status } = await LocationLib.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.log('Permissão de localização negada');
+        return;
+      }
+
+      try {
+        let location = await LocationLib.getCurrentPositionAsync({});
+        setCurrentLocation({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude
+        });
+        console.log('📍 Localização obtida:', location.coords);
+      } catch (error) {
+        console.log('Erro ao obter localização:', error);
+      }
+    })();
   }
 
   function handleAnswer(questionId: string, value: any) {
@@ -142,6 +164,10 @@ export default function ColetaPesquisa() {
             response.surveyId = selectedSurveyId;
             response.locationId = selectedLocationId;
             response.dataPayload = JSON.stringify(answers);
+            if (currentLocation) {
+              response.latitude = currentLocation.latitude;
+              response.longitude = currentLocation.longitude;
+            }
           });
         });
         console.log('✅ Resposta salva localmente no banco de dados');
@@ -150,7 +176,8 @@ export default function ColetaPesquisa() {
         api.post('/responses', {
           survey_id: selectedSurveyId,
           location_id: selectedLocationId,
-          answers_json: answers
+          answers_json: answers,
+          ...(currentLocation ? { latitude: currentLocation.latitude, longitude: currentLocation.longitude } : {})
         }).catch(err => console.log('Sincronização em background falhou (normal se estiver offline)'));
 
       } else {
@@ -158,7 +185,8 @@ export default function ColetaPesquisa() {
         await api.post('/responses', {
           survey_id: selectedSurveyId,
           location_id: selectedLocationId,
-          answers_json: answers
+          answers_json: answers,
+          ...(currentLocation ? { latitude: currentLocation.latitude, longitude: currentLocation.longitude } : {})
         });
       }
       
@@ -167,6 +195,7 @@ export default function ColetaPesquisa() {
       setAnswers({});
       setSelectedLocationId('');
       setSelectedSurveyId('');
+      setCurrentLocation(null);
     } catch (error) {
       console.error(error);
       Alert.alert('Erro', 'Falha ao salvar o questionário. Tente novamente.');

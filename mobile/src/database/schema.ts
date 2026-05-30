@@ -1,7 +1,7 @@
 import { appSchema, tableSchema } from '@nozbe/watermelondb'
 
 export const mySchema = appSchema({
-  version: 3, // Incremented version to force database recreation with users table
+  version: 4, // Incremented version to force database recreation with users table
   tables: [
     // TABELA 1: Os Questionários (Templates)
     tableSchema({
@@ -36,6 +36,8 @@ export const mySchema = appSchema({
       columns: [
         { name: 'survey_id', type: 'string', isIndexed: true },
         { name: 'location_id', type: 'string', isIndexed: true },
+        { name: 'latitude', type: 'number', isOptional: true },
+        { name: 'longitude', type: 'number', isOptional: true },
         { name: 'data_payload', type: 'string' }, 
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },

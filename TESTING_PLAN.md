@@ -60,10 +60,10 @@ Esta seção define o roadmap após a estabilização dos testes unitários e de
 
 ### Fase 8: Build e Distribuição Mobile (Expo EAS)
 - [x] **Passo 1: Configuração do EAS Build.** Configurar perfis e credenciais (Keystore Android / Certificados iOS).
-- [ ] **Passo 2: Criação de Builds Internos.** Gerar APK para testes em equipe interna (`eas build -p android --profile preview`).
-- [ ] **Passo 3: Configuração do EAS Submit.** Preparar assets visuais e descrições para a Play Store e App Store.
+- [x] **Passo 2: Criação de Builds Internos.** Gerar APK para testes em equipe interna (`eas build -p android --profile preview`).
+- [x] **Passo 3: Configuração do EAS Submit.** Preparar assets visuais e descrições para a Play Store e App Store.
 
 ### Fase 9: Evoluções Funcionais do Domínio
-- [ ] **Passo 1: Geolocalização de Precisão Móvel.** Integrar o `expo-location` para gravar as coordenadas exatas da coleta.
-- [ ] **Passo 2: Exportação de Relatórios Web.** Permitir a exportação de respostas consolidadas (CSV/XLSX) no painel Admin.
-- [ ] **Passo 3: Mapas Visuais.** Integrar mapa (Leaflet/Google Maps) no Dashboard Web para visualizar os pontos geográficos de cada coleta.
+- [x] **Passo 1: Geolocalização de Precisão Móvel.** Integrar o `expo-location` para gravar as coordenadas exatas da coleta.
+- [x] **Passo 2: Exportação de Relatórios Web.** Permitir a exportação de respostas consolidadas (CSV/XLSX) no painel Admin.
+- [x] **Passo 3: Mapas Visuais.** Integrar mapa (Leaflet/Google Maps) no Dashboard Web para visualizar os pontos geográficos de cada coleta.

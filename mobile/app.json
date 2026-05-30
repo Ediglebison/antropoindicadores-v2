@@ -28,6 +28,12 @@
     },
     "plugins": [
       [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow AntropoMobile to use your location to record where the survey was collected."
+        }
+      ],
+      [
         "@morrowdigital/watermelondb-expo-plugin",
         {
           "disableJsi": true

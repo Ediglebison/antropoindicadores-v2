@@ -24,6 +24,12 @@ export class Response {
   @Column({ type: 'varchar', nullable: true })
   researcher_id: string;
 
+  @Column({ type: 'float', nullable: true })
+  latitude: number;
+
+  @Column({ type: 'float', nullable: true })
+  longitude: number;
+
   @Column({ type: 'jsonb' })
   data_payload: any;
 

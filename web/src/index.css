@@ -1,3 +1,5 @@
+@import "leaflet/dist/leaflet.css";
+
 :root {
   /* FUNDOS */
   --bg-app: #f8fafc;       /* Cinza muito claro (quase branco) para o fundo da tela */

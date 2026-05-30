@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsObject, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty, IsObject, IsOptional, IsNumber } from 'class-validator';
 
 export class CreateResponseDto {
   @IsString()
@@ -8,6 +8,14 @@ export class CreateResponseDto {
   @IsString()
   @IsOptional()
   location_id: string;
+
+  @IsNumber()
+  @IsOptional()
+  latitude?: number;
+
+  @IsNumber()
+  @IsOptional()
+  longitude?: number;
 
   @IsObject()
   @IsNotEmpty()

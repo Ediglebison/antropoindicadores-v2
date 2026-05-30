@@ -10,6 +10,8 @@ interface ResponseData {
   survey: { id: string; title: string; questions_schema: any[] };
   location: { name: string; unique_code: string };
   researcher: { name: string };
+  latitude?: number;
+  longitude?: number;
 }
 
 export function Responses() {
@@ -64,7 +66,7 @@ export function Responses() {
     }
 
     // 1. Definir o cabeçalho das colunas
-    const headers = ['Data/Hora', 'Questionário', 'Comunidade/Local', 'Cód. Local', 'Pesquisador', 'Respostas Detalhadas'];
+    const headers = ['Data/Hora', 'Questionário', 'Comunidade/Local', 'Cód. Local', 'Pesquisador', 'Latitude', 'Longitude', 'Respostas Detalhadas'];
 
     // 2. Montar as linhas cruzando as perguntas com as respostas
     const rows = responses.map(resp => {
@@ -73,6 +75,8 @@ export function Responses() {
       const local = resp.location?.name || '';
       const codLocal = resp.location?.unique_code || '';
       const pesquisador = resp.researcher?.name || '';
+      const latitude = resp.latitude ? String(resp.latitude) : '';
+      const longitude = resp.longitude ? String(resp.longitude) : '';
 
       // Transforma o JSON de respostas em um texto corrido legível (Pergunta: Resposta | Pergunta: Resposta)
       let respostasTexto = '';
@@ -94,6 +98,8 @@ export function Responses() {
         escapeCSV(local),
         escapeCSV(codLocal),
         escapeCSV(pesquisador),
+        escapeCSV(latitude),
+        escapeCSV(longitude),
         escapeCSV(respostasTexto)
       ].join(';');
     });
