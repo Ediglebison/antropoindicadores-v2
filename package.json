@@ -8,6 +8,7 @@
     "test:cov:all": "npm run test:cov --prefix backend && npm run test:cov --prefix web && npm run test:cov --prefix mobile"
   },
   "dependencies": {
+    "node": "^24.16.0",
     "recharts": "^3.8.0"
   }
 }
