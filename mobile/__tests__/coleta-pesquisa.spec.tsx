@@ -5,6 +5,16 @@ import { api } from '../src/services/api';
 import { database } from '../src/database';
 import { Alert } from 'react-native';
 
+jest.mock('expo-location', () => ({
+  requestForegroundPermissionsAsync: jest.fn().mockResolvedValue({ status: 'granted' }),
+  getCurrentPositionAsync: jest.fn().mockResolvedValue({
+    coords: {
+      latitude: -23.5505,
+      longitude: -46.6333,
+    },
+  }),
+}));
+
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
@@ -106,7 +116,9 @@ describe('ColetaPesquisa', () => {
       expect(api.post).toHaveBeenCalledWith('/responses', {
         survey_id: 'sur1',
         location_id: 'loc1',
-        answers_json: { q1: 'João' }
+        answers_json: { q1: 'João' },
+        latitude: -23.5505,
+        longitude: -46.6333
       });
       expect(Alert.alert).toHaveBeenCalledWith('Sucesso!', 'Questionário salvo com sucesso');
     });
