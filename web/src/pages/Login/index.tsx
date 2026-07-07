@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 import './styles.css';
 import { Eye, EyeOff } from 'lucide-react';
 import logoImg from '../../assets/ppgeaa_ia.png';
@@ -15,6 +15,7 @@ export function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -22,16 +23,7 @@ export function Login() {
     setLoading(true);
 
     try {
-      const response = await api.post('/auth/login', { 
-        access_code: accessCode, 
-        password: password 
-      });
-
-      const { access_token, user } = response.data;
-
-      localStorage.setItem('token', access_token);
-      localStorage.setItem('user', JSON.stringify(user));
-      
+      await login(accessCode, password);
       navigate('/dashboard');
 
     } catch (err: any) {

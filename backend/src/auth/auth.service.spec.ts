@@ -81,7 +81,7 @@ describe('AuthService', () => {
   });
 
   describe('login', () => {
-    it('should return access_token and user info', async () => {
+    it('should set cookie and return user info (no access_token in body)', async () => {
       const mockUser = {
         id: '1',
         name: 'Test User',
@@ -90,17 +90,27 @@ describe('AuthService', () => {
       };
       mockJwtService.sign.mockReturnValue('mock-jwt-token');
 
-      // Note: service.login doesn't await in new code, but `await` in test won't hurt,
-      // or we can remove await. I will remove await to be safe against unnecessary await rules.
-      const result = service.login(mockUser as any);
+      const res = {
+        cookie: jest.fn().mockReturnThis(),
+      } as any;
+
+      const result = service.login(mockUser as any, res);
 
       expect(mockJwtService.sign).toHaveBeenCalledWith({
         username: 'USER1',
         sub: '1',
         role: 'ADMIN',
       });
+      expect(res.cookie).toHaveBeenCalledWith(
+        'access_token',
+        'mock-jwt-token',
+        expect.objectContaining({
+          httpOnly: true,
+          sameSite: 'strict',
+          path: '/',
+        }),
+      );
       expect(result).toEqual({
-        access_token: 'mock-jwt-token',
         user: {
           id: '1',
           name: 'Test User',
@@ -108,6 +118,7 @@ describe('AuthService', () => {
           role: 'ADMIN',
         },
       });
+      expect((result as any).access_token).toBeUndefined();
     });
   });
 });

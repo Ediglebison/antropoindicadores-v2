@@ -1,10 +1,13 @@
 import '@testing-library/jest-dom';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DashboardLayout } from './index';
 import { MemoryRouter } from 'react-router-dom';
 
 const mockNavigate = vi.fn();
+const mockLogout = vi.fn();
+
+let mockUser: { role: string } | null = { role: 'USER' };
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
@@ -14,15 +17,22 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
+vi.mock('../../contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: mockUser,
+    logout: mockLogout,
+  }),
+}));
+
 describe('DashboardLayout Component', () => {
   beforeEach(() => {
-    localStorage.clear();
     mockNavigate.mockClear();
+    mockLogout.mockReset();
+    mockLogout.mockResolvedValue(undefined);
+    mockUser = { role: 'USER' };
   });
 
   it('displays common links', () => {
-    localStorage.setItem('user', JSON.stringify({ role: 'USER' }));
-    
     render(
       <MemoryRouter>
         <DashboardLayout />
@@ -39,8 +49,8 @@ describe('DashboardLayout Component', () => {
   });
 
   it('displays admin links if user is ADMIN', () => {
-    localStorage.setItem('user', JSON.stringify({ role: 'ADMIN' }));
-    
+    mockUser = { role: 'ADMIN' };
+
     render(
       <MemoryRouter>
         <DashboardLayout />
@@ -52,10 +62,7 @@ describe('DashboardLayout Component', () => {
     expect(screen.getByText('Pesquisadores')).toBeInTheDocument();
   });
 
-  it('calls localStorage.clear() and navigates to / on clicking Sair', () => {
-    localStorage.setItem('user', JSON.stringify({ role: 'USER' }));
-    localStorage.setItem('token', 'some-token');
-
+  it('calls logout and navigates to / on clicking Sair', async () => {
     render(
       <MemoryRouter>
         <DashboardLayout />
@@ -65,8 +72,8 @@ describe('DashboardLayout Component', () => {
     const logoutBtn = screen.getByText('Sair');
     fireEvent.click(logoutBtn);
 
-    expect(localStorage.getItem('token')).toBeNull();
-    expect(localStorage.getItem('user')).toBeNull();
-    expect(mockNavigate).toHaveBeenCalledWith('/');
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/');
+    });
   });
 });

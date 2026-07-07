@@ -3,9 +3,9 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Login } from './index';
 import { MemoryRouter } from 'react-router-dom';
-import { api } from '../../services/api';
 
 const mockNavigate = vi.fn();
+const mockLogin = vi.fn();
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
@@ -15,16 +15,16 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
-vi.mock('../../services/api', () => ({
-  api: {
-    post: vi.fn(),
-  },
+vi.mock('../../contexts/AuthContext', () => ({
+  useAuth: () => ({
+    login: mockLogin,
+  }),
 }));
 
 describe('Login Page', () => {
   beforeEach(() => {
-    localStorage.clear();
     mockNavigate.mockClear();
+    mockLogin.mockReset();
     vi.clearAllMocks();
   });
 
@@ -45,13 +45,8 @@ describe('Login Page', () => {
     expect(passwordInput).toHaveValue('secret');
   });
 
-  it('successful login sets localStorage and navigates to /dashboard', async () => {
-    (api.post as any).mockResolvedValueOnce({
-      data: {
-        access_token: 'fake-token',
-        user: { id: 1, name: 'Admin User', role: 'ADMIN' },
-      },
-    });
+  it('successful login navigates to /dashboard (token managed via cookie)', async () => {
+    mockLogin.mockResolvedValueOnce(undefined);
 
     render(
       <MemoryRouter>
@@ -68,19 +63,16 @@ describe('Login Page', () => {
     fireEvent.click(submitBtn);
 
     await waitFor(() => {
-      expect(api.post).toHaveBeenCalledWith('/auth/login', {
-        access_code: 'admin123',
-        password: 'secret',
-      });
+      expect(mockLogin).toHaveBeenCalledWith('admin123', 'secret');
     });
 
-    expect(localStorage.getItem('token')).toBe('fake-token');
-    expect(localStorage.getItem('user')).toBe(JSON.stringify({ id: 1, name: 'Admin User', role: 'ADMIN' }));
-    expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
+    });
   });
 
   it('failed login displays error message', async () => {
-    (api.post as any).mockRejectedValueOnce({
+    mockLogin.mockRejectedValueOnce({
       response: { status: 401 },
     });
 
@@ -102,7 +94,6 @@ describe('Login Page', () => {
       expect(screen.getByText('Acesso negado. Verifique suas credenciais.')).toBeInTheDocument();
     });
 
-    expect(localStorage.getItem('token')).toBeNull();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

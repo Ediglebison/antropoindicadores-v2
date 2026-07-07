@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { Response } from 'express';
 import { User } from '../users/user.entity';
 
 @Injectable()
@@ -25,14 +26,23 @@ export class AuthService {
     return null;
   }
 
-  login(user: User | Partial<User>) {
+  login(user: User | Partial<User>, res: Response) {
     const payload = {
       username: user.access_code,
       sub: user.id,
       role: user.role,
     };
+    const token = this.jwtService.sign(payload);
+
+    res.cookie('access_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000,
+      path: '/',
+    });
+
     return {
-      access_token: this.jwtService.sign(payload),
       user: {
         id: user.id,
         name: user.name,

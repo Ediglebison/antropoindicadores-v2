@@ -27,6 +27,11 @@ import { SyncModule } from './sync/sync.module';
         ttl: 60000,
         limit: 10,
       },
+      {
+        name: 'login',
+        ttl: 60000,
+        limit: 100,
+      },
     ]),
     TypeOrmModule.forRootAsync({
       useFactory: () => {

@@ -7,6 +7,7 @@ pg_data/
 .vscode/
 .idea/
 .agents
+.agents/
 antropo_db_backup.sql
 *.log
 coverage/
@@ -40,3 +41,5 @@ test-results/
 *.local
 **/.context.md
 docs/
+relatorio-pentest-antropoindicadores.md
+.todo.md

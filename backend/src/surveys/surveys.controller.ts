@@ -10,49 +10,47 @@ import {
 } from '@nestjs/common';
 import { SurveysService } from './surveys.service';
 import { CreateSurveyDto } from './dto/create-survey.dto';
-import { AuthGuard } from '@nestjs/passport';
+import { UpdateSurveyDto } from './dto/update-survey.dto';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { UserRole } from '../users/user.entity';
 
+@UseGuards(RolesGuard)
 @Controller('surveys')
 export class SurveysController {
   constructor(private readonly surveysService: SurveysService) {}
 
-  // ROTA: POST http://localhost:3000/surveys
-  @UseGuards(AuthGuard('jwt'))
+  @Roles(UserRole.ADMIN)
   @Post()
   create(@Body() createSurveyDto: CreateSurveyDto) {
     return this.surveysService.create(createSurveyDto);
   }
 
-  // ROTA: GET http://localhost:3000/surveys
-  @UseGuards(AuthGuard('jwt'))
+  @Roles(UserRole.ADMIN, UserRole.RESEARCHER)
   @Get()
   findAll() {
     return this.surveysService.findAll();
   }
 
-  // ROTA: GET http://localhost:3000/surveys/:id
-  @UseGuards(AuthGuard('jwt'))
+  @Roles(UserRole.ADMIN, UserRole.RESEARCHER)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.surveysService.findOne(id);
   }
 
-  // ROTA: PUT http://localhost:3000/surveys/:id
-  @UseGuards(AuthGuard('jwt'))
-  @Patch(':id') // 👈 O segredo é usar Patch!
-  update(@Param('id') id: string, @Body() updateData: any) {
-    return this.surveysService.update(id, updateData);
+  @Roles(UserRole.ADMIN)
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateSurveyDto: UpdateSurveyDto) {
+    return this.surveysService.update(id, updateSurveyDto);
   }
 
-  // ROTA: DELETE http://localhost:3000/surveys/:id
-  @UseGuards(AuthGuard('jwt'))
+  @Roles(UserRole.ADMIN)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.surveysService.remove(id);
   }
 
-  // ROTA: PATCH http://localhost:3000/surveys/:id/toggle
-  @UseGuards(AuthGuard('jwt'))
+  @Roles(UserRole.ADMIN)
   @Patch(':id/toggle')
   toggleActive(@Param('id') id: string) {
     return this.surveysService.toggleActive(id);

@@ -1,30 +1,17 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom';
 import { LayoutDashboard, FileText, MapPin, Users, LogOut, ClipboardList, Menu, X } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 import './styles.css';
 import logoImg from '../../assets/ppgeaa_ia.png';
 
 export function DashboardLayout() {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
 
-  const [isAdmin] = useState(() => {
-    const userStorage = localStorage.getItem('user');
-    if (userStorage) {
-      try {
-        const user = JSON.parse(userStorage);
-        return user.role === 'ADMIN';
-      } catch (error) {
-        console.error("Erro ao ler dados do usuário no menu", error);
-      }
-    }
-    return false;
-  });
-
-  // useEffect has been removed as the initial state function handles reading from local storage.
-  // There are no props or other dependencies changing the admin status in this component so it is safe to set on mount only.
-
-  function handleLogout() {
-    localStorage.clear();
+  async function handleLogout() {
+    await logout();
     navigate('/');
   }
   

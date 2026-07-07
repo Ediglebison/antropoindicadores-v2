@@ -15,8 +15,8 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('API Antropoindicadores Online!');
+    it('should return "OK"', () => {
+      expect(appController.getHello()).toBe('OK');
     });
   });
 });

@@ -8,39 +8,25 @@ import { Locations } from './pages/Locations';
 import { Collection } from './pages/Collection';
 import { Responses } from './pages/Responses';
 import { Dashboard } from './pages/Dashboard';
+import { useAuth } from './contexts/AuthContext';
 
 import type { JSX } from 'react/jsx-dev-runtime';
 
-// Proteção de Rota Básica (Apenas verifica se tem o token de login)
 function PrivateRoute({ children }: { children: JSX.Element }) {
-  const token = localStorage.getItem('token');
-  return token ? children : <Navigate to="/" />;
+  const { user, loading } = useAuth();
+  if (loading) return <div>Carregando...</div>;
+  return user ? children : <Navigate to="/" />;
 }
 
-// Proteção de Rota Admin (Verifica se o usuário logado tem cargo de administrador)
 function AdminRoute({ children }: { children: JSX.Element }) {
-  // Lemos o objeto do usuário que foi salvo no localStorage durante o Login
-  const userStorage = localStorage.getItem('user'); 
-  
-  if (!userStorage) {
-    return <Navigate to="/" />; // Se não tiver os dados, volta pro login
-  }
-
-  let user;
-  try {
-    user = JSON.parse(userStorage);
-  } catch (error) {
-    console.error('Error parsing user data:', error);
-    // Se der qualquer erro ao ler os dados do usuário, expulsa por segurança
-    return <Navigate to="/" />;
-  }
-
+  const { user, loading } = useAuth();
+  if (loading) return <div>Carregando...</div>;
+  if (!user) return <Navigate to="/" />;
   if (user.role !== 'ADMIN') {
     alert("Acesso negado: Apenas administradores podem acessar esta página.");
     return <Navigate to="/dashboard" replace />;
   }
-  
-  return children; // Se for admin, libera o acesso ao componente!
+  return children;
 }
 
 function App() {
@@ -50,15 +36,11 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
 
-        {/* Todas as rotas aqui dentro terão o Menu Lateral e exigem estar logado */}
         <Route element={<PrivateRoute><DashboardLayout /></PrivateRoute>}>
-          
-          {/* ROTAS LIVRES (Pesquisadores comuns e Administradores acessam) */}
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/collection" element={<Collection />} />
           <Route path="/responses" element={<Responses />} />
 
-          {/* ROTAS RESTRITAS (APENAS Administradores acessam) */}
           <Route path="/surveys" element={<AdminRoute><SurveyBuilder /></AdminRoute>} />
           <Route path="/researchers" element={<AdminRoute><Researchers /></AdminRoute>} />
           <Route path="/locations" element={<AdminRoute><Locations /></AdminRoute>} />

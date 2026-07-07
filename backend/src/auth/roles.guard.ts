@@ -1,9 +1,11 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, Logger } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
 export class RolesGuard extends AuthGuard('jwt') implements CanActivate {
+  private readonly logger = new Logger(RolesGuard.name);
+
   constructor(private reflector: Reflector) {
     super();
   }
@@ -24,19 +26,14 @@ export class RolesGuard extends AuthGuard('jwt') implements CanActivate {
       return false;
     }
 
-    // MUDANÇA 4: Agora é seguro pegar o usuário
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
-    // Verificação de segurança: Se o user não existe ou não tem role, bloqueia
     if (!user || !user.role) {
-      console.log(
-        'Bloqueio de Role: Usuário sem role definida no token/request',
-      );
+      this.logger.warn('Usuário sem role definida no token/request');
       return false;
     }
 
-    // Verifica se a role do usuário está na lista de permitidas
     return requiredRoles.includes(user.role);
   }
 }

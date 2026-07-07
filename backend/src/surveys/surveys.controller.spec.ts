@@ -1,7 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SurveysController } from './surveys.controller';
 import { SurveysService } from './surveys.service';
-import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from '../auth/roles.guard';
+import { Reflector } from '@nestjs/core';
+import { UserRole } from '../users/user.entity';
+
+const ROLES_KEY = 'roles';
 
 describe('SurveysController', () => {
   let controller: SurveysController;
@@ -26,7 +30,7 @@ describe('SurveysController', () => {
         },
       ],
     })
-      .overrideGuard(AuthGuard('jwt'))
+      .overrideGuard(RolesGuard)
       .useValue({ canActivate: () => true })
       .compile();
 
@@ -108,6 +112,47 @@ describe('SurveysController', () => {
 
       expect(await controller.toggleActive(id)).toBe(result);
       expect(surveysService.toggleActive).toHaveBeenCalledWith(id);
+    });
+  });
+
+  describe('RBAC — RolesGuard decorators', () => {
+    const reflector = new Reflector();
+
+    it('controller tem RolesGuard aplicado', () => {
+      const guards = reflector.get('__guards__', SurveysController);
+      expect(guards).toBeDefined();
+      expect(guards.length).toBe(1);
+      expect(guards[0]).toBe(RolesGuard);
+    });
+
+    it('create requer ADMIN', () => {
+      const roles = reflector.get(ROLES_KEY, controller.create);
+      expect(roles).toEqual([UserRole.ADMIN]);
+    });
+
+    it('findAll permite ADMIN e RESEARCHER', () => {
+      const roles = reflector.get(ROLES_KEY, controller.findAll);
+      expect(roles).toEqual([UserRole.ADMIN, UserRole.RESEARCHER]);
+    });
+
+    it('findOne permite ADMIN e RESEARCHER', () => {
+      const roles = reflector.get(ROLES_KEY, controller.findOne);
+      expect(roles).toEqual([UserRole.ADMIN, UserRole.RESEARCHER]);
+    });
+
+    it('update requer ADMIN', () => {
+      const roles = reflector.get(ROLES_KEY, controller.update);
+      expect(roles).toEqual([UserRole.ADMIN]);
+    });
+
+    it('remove requer ADMIN', () => {
+      const roles = reflector.get(ROLES_KEY, controller.remove);
+      expect(roles).toEqual([UserRole.ADMIN]);
+    });
+
+    it('toggleActive requer ADMIN', () => {
+      const roles = reflector.get(ROLES_KEY, controller.toggleActive);
+      expect(roles).toEqual([UserRole.ADMIN]);
     });
   });
 });
