@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import helmet from 'helmet';
 import { ValidationPipe } from '@nestjs/common';
-import * as cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
@@ -17,8 +17,6 @@ async function bootstrap() {
       xContentTypeOptions: true,
       hidePoweredBy: true,
       frameguard: { action: 'deny' },
-      xssFilter: true,
-      noSniff: true,
       referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
     }),
   );
