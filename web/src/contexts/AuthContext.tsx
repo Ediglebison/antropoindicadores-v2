@@ -1,21 +1,8 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
 import { api } from '../services/api';
-
-interface User {
-  id: string;
-  name: string;
-  access_code: string;
-  role: string;
-}
-
-interface AuthContextType {
-  user: User | null;
-  loading: boolean;
-  login: (accessCode: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
-}
-
-const AuthContext = createContext<AuthContextType>(null!);
+import { AuthContext } from './auth-context';
+import type { User } from './auth-context';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -54,5 +41,3 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     </AuthContext.Provider>
   );
 }
-
-export const useAuth = () => useContext(AuthContext);

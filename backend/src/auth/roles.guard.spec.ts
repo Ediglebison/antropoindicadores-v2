@@ -67,7 +67,9 @@ describe('RolesGuard', () => {
   });
 
   it('permite RESEARCHER quando ADMIN e RESEARCHER estão na lista', async () => {
-    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(['ADMIN', 'RESEARCHER']);
+    jest
+      .spyOn(reflector, 'getAllAndOverride')
+      .mockReturnValue(['ADMIN', 'RESEARCHER']);
 
     const guard = new RolesGuard(reflector);
     const result = await guard.canActivate(mockContext('RESEARCHER'));

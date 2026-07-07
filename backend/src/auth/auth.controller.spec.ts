@@ -51,7 +51,9 @@ describe('AuthController', () => {
     it('should return user data if credentials are valid', async () => {
       const loginDto = { access_code: '123', password: 'password123' };
       const user = { id: '1', access_code: '123', role: 'ADMIN' };
-      const loginResult = { user: { id: '1', name: 'Test', access_code: '123', role: 'ADMIN' } };
+      const loginResult = {
+        user: { id: '1', name: 'Test', access_code: '123', role: 'ADMIN' },
+      };
       const res = mockResponse();
 
       mockAuthService.validateUser.mockResolvedValue(user);
@@ -104,7 +106,9 @@ describe('AuthController', () => {
 
       const result = await controller.logout(res);
 
-      expect(res.clearCookie).toHaveBeenCalledWith('access_token', { path: '/' });
+      expect(res.clearCookie).toHaveBeenCalledWith('access_token', {
+        path: '/',
+      });
       expect(result).toEqual({ message: 'Sessão encerrada' });
     });
   });
@@ -116,9 +120,7 @@ describe('rate limiting', () => {
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
-        ThrottlerModule.forRoot([
-          { name: 'login', ttl: 60000, limit: 5 },
-        ]),
+        ThrottlerModule.forRoot([{ name: 'login', ttl: 60000, limit: 5 }]),
       ],
       controllers: [AuthController],
       providers: [

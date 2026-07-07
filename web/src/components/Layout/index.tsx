@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom';
 import { LayoutDashboard, FileText, MapPin, Users, LogOut, ClipboardList, Menu, X } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts';
 import './styles.css';
 import logoImg from '../../assets/ppgeaa_ia.png';
 

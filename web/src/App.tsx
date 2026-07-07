@@ -8,7 +8,7 @@ import { Locations } from './pages/Locations';
 import { Collection } from './pages/Collection';
 import { Responses } from './pages/Responses';
 import { Dashboard } from './pages/Dashboard';
-import { useAuth } from './contexts/AuthContext';
+import { useAuth } from './contexts';
 
 import type { JSX } from 'react/jsx-dev-runtime';
 

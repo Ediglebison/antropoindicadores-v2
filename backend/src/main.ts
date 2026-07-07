@@ -10,22 +10,24 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
-  app.use(helmet({
-    contentSecurityPolicy: false,
-    crossOriginEmbedderPolicy: false,
-    xContentTypeOptions: true,
-    hidePoweredBy: true,
-    frameguard: { action: 'deny' },
-    xssFilter: true,
-    noSniff: true,
-    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
-  }));
+  app.use(
+    helmet({
+      contentSecurityPolicy: false,
+      crossOriginEmbedderPolicy: false,
+      xContentTypeOptions: true,
+      hidePoweredBy: true,
+      frameguard: { action: 'deny' },
+      xssFilter: true,
+      noSniff: true,
+      referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    }),
+  );
 
   app.useGlobalFilters(new GlobalExceptionFilter());
 
   app.enableCors({
     origin: process.env.CORS_ORIGIN
-      ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+      ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
       : ['http://localhost:5173'],
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
     credentials: true,
@@ -41,4 +43,4 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }
-bootstrap();
+void bootstrap();

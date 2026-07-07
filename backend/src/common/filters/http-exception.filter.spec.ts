@@ -59,10 +59,7 @@ describe('GlobalExceptionFilter', () => {
 
     it('deve extrair primeiro item de array message', () => {
       const host = mockArgumentsHost();
-      const exception = new HttpException(
-        { message: ['erro1', 'erro2'] },
-        422,
-      );
+      const exception = new HttpException({ message: ['erro1', 'erro2'] }, 422);
 
       filter.catch(exception, host);
 
