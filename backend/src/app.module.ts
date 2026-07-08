@@ -36,17 +36,12 @@ import { SyncModule } from './sync/sync.module';
     TypeOrmModule.forRootAsync({
       useFactory: () => {
         if (process.env.DATABASE_URL) {
-          const isFly =
-            process.env.DATABASE_URL.includes('flycast') ||
-            process.env.DATABASE_URL.includes('internal');
           return {
             type: 'postgres',
             url: process.env.DATABASE_URL,
-            ssl: isFly
-              ? false
-              : process.env.DATABASE_URL.includes('localhost')
-                ? false
-                : { rejectUnauthorized: false },
+            ssl: process.env.DB_SSL === 'true'
+              ? { rejectUnauthorized: false }
+              : false,
             entities: [User, Location, Survey, Response],
             autoLoadEntities: true,
             synchronize: true,

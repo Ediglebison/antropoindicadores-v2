@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Storage } from '../utils/storage';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://antropoindicadores-api-2026.fly.dev';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export const api = axios.create({
   baseURL: API_BASE_URL,

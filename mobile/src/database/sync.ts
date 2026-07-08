@@ -3,7 +3,7 @@ import { database } from './index';
 import { Storage } from '../utils/storage';
 
 // Lê a URL do arquivo .env
-const BACKEND_URL = process.env.EXPO_PUBLIC_API_URL || 'https://antropoindicadores-api-2026.fly.dev';
+const BACKEND_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export async function syncData(onProgress?: (status: string, progressValue?: number) => void) {
   // Verificar se o database está disponível (só em plataformas nativas)
