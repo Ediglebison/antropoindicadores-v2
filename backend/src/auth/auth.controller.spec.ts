@@ -13,6 +13,7 @@ describe('AuthController', () => {
   const mockAuthService = {
     validateUser: jest.fn(),
     login: jest.fn(),
+    findMe: jest.fn(),
   };
 
   const mockResponse = () => {
@@ -89,14 +90,29 @@ describe('AuthController', () => {
   describe('me', () => {
     it('should return authenticated user data', async () => {
       const req = { user: { userId: '1', username: 'USER1', role: 'ADMIN' } };
+      const mockUser = { id: '1', name: 'User One', access_code: 'USER1', role: 'ADMIN' };
+
+      mockAuthService.findMe.mockResolvedValue(mockUser);
 
       const result = await controller.me(req as any);
 
+      expect(mockAuthService.findMe).toHaveBeenCalledWith('1');
       expect(result).toEqual({
         id: '1',
-        username: 'USER1',
+        name: 'User One',
+        access_code: 'USER1',
         role: 'ADMIN',
       });
+    });
+
+    it('should throw UnauthorizedException if user not found', async () => {
+      const req = { user: { userId: '999' } };
+
+      mockAuthService.findMe.mockResolvedValue(null);
+
+      await expect(controller.me(req as any)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
   });
 
@@ -129,6 +145,7 @@ describe('rate limiting', () => {
           useValue: {
             validateUser: jest.fn().mockResolvedValue(null),
             login: jest.fn(),
+            findMe: jest.fn(),
           },
         },
         {
