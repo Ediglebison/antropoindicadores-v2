@@ -12,6 +12,10 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
+  async findMe(userId: string) {
+    return this.usersService.findOneById(userId);
+  }
+
   async validateUser(
     access_code: string,
     pass: string,

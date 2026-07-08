@@ -37,10 +37,13 @@ export class AuthController {
   @UseGuards(RolesGuard)
   @Get('me')
   async me(@Req() req: Request) {
+    const user = await this.authService.findMe((req.user as any)?.userId);
+    if (!user) throw new UnauthorizedException('Usuário não encontrado');
     return {
-      id: (req.user as any)?.userId,
-      username: (req.user as any)?.username,
-      role: (req.user as any)?.role,
+      id: user.id,
+      name: user.name,
+      access_code: user.access_code,
+      role: user.role,
     };
   }
 
