@@ -1,6 +1,6 @@
 {
   "name": "app-antropoindicadores",
-  "version": "1.0.0",
+  "version": "1.0.6",
   "private": true,
   "scripts": {
     "lint:all": "npm run lint --prefix backend && npm run lint --prefix web && npm run lint --prefix mobile",

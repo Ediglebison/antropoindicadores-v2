@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts';
 import './styles.css';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Home } from 'lucide-react';
 import logoImg from '../../assets/ppgeaa_ia.png';
 
 export function Login() {
@@ -40,6 +40,9 @@ export function Login() {
 
   return (
     <div className="login-container">
+      <Link to="/" className="home-button" title="Ir para Home">
+        <Home size={20} />
+      </Link>
       <div className="login-card">
         
         {/* Nova Área de Cabeçalho Centralizada */}
