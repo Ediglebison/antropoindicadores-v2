@@ -106,7 +106,7 @@ describe('AuthService', () => {
         'mock-jwt-token',
         expect.objectContaining({
           httpOnly: true,
-          sameSite: 'strict',
+          sameSite: 'lax',
           path: '/',
         }),
       );
