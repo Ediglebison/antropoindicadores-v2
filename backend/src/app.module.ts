@@ -16,6 +16,8 @@ import { ResponsesModule } from './responses/responses.module';
 
 import { Response } from './responses/entities/response.entity';
 import { SurveysModule } from './surveys/surveys.module';
+import { DraftsModule } from './drafts/drafts.module';
+import { Draft } from './drafts/entities/draft.entity';
 
 import { SyncModule } from './sync/sync.module';
 
@@ -39,10 +41,11 @@ import { SyncModule } from './sync/sync.module';
           return {
             type: 'postgres',
             url: process.env.DATABASE_URL,
-            ssl: process.env.DB_SSL === 'true'
-              ? { rejectUnauthorized: false }
-              : false,
-            entities: [User, Location, Survey, Response],
+            ssl:
+              process.env.DB_SSL === 'true'
+                ? { rejectUnauthorized: false }
+                : false,
+            entities: [User, Location, Survey, Response, Draft],
             autoLoadEntities: true,
             synchronize: true,
           };
@@ -55,7 +58,7 @@ import { SyncModule } from './sync/sync.module';
           password: process.env.DB_PASS,
           database: process.env.DB_NAME,
           ssl: false,
-          entities: [User, Location, Survey, Response],
+          entities: [User, Location, Survey, Response, Draft],
           autoLoadEntities: true,
           synchronize: true,
         };
@@ -66,6 +69,7 @@ import { SyncModule } from './sync/sync.module';
     SurveysModule,
     LocationsModule,
     ResponsesModule,
+    DraftsModule,
     SyncModule,
   ],
   controllers: [AppController],

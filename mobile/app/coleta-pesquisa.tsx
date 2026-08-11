@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, ActivityIndicator, TextInput, FlatList, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import * as LocationLib from 'expo-location';
+import { Q } from '@nozbe/watermelondb';
 import { api } from '../src/services/api';
 import { database } from '../src/database';
 import SideMenu from './side-menu';
@@ -29,6 +30,62 @@ interface Location {
   unique_code: string;
 }
 
+interface LocalDraft {
+  id: string;
+  survey_id: string;
+  location_id: string;
+  created_at: number;
+}
+
+// Dezembro de respostas: uma pergunta está sem resposta quando o valor está
+// ausente, é null, é string vazia ou é `false` (bool não marcado). O número 0
+// conta como respondida.
+export function findUnansweredQuestions(
+  survey: Survey | undefined,
+  answers: Record<string, any>
+): string[] {
+  if (!survey || !Array.isArray(survey.questions_schema)) {
+    return [];
+  }
+
+  const unanswered: string[] = [];
+  for (const question of survey.questions_schema) {
+    const answer = answers[question.id];
+    if (answer === undefined || answer === null || answer === '' || answer === false) {
+      unanswered.push(question.label || question.id);
+    }
+  }
+  return unanswered;
+}
+
+function parseDraftPayload(rawPayload: any): Record<string, any> {
+  if (rawPayload === undefined || rawPayload === null || rawPayload === '') {
+    return {};
+  }
+  try {
+    const parsed = typeof rawPayload === 'string' ? JSON.parse(rawPayload) : rawPayload;
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch (error) {
+    console.error('Erro ao ler data_payload do rascunho:', error);
+    return {};
+  }
+}
+
+function toDraftView(row: any): LocalDraft {
+  return {
+    id: row.id,
+    survey_id: row._raw.survey_id,
+    location_id: row._raw.location_id,
+    created_at: row._raw.created_at,
+  };
+}
+
+function formatDraftDate(timestamp: number): string {
+  if (!timestamp) return '';
+  const date = new Date(timestamp);
+  return `${date.toLocaleDateString('pt-BR')} ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+}
+
 export default function ColetaPesquisa() {
   const [step, setStep] = useState<1 | 2>(1);
   const [loading, setLoading] = useState(false);
@@ -40,6 +97,8 @@ export default function ColetaPesquisa() {
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showSurveyModal, setShowSurveyModal] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<{ latitude: number, longitude: number } | null>(null);
+  const [drafts, setDrafts] = useState<any[]>([]);
+  const [activeDraftRow, setActiveDraftRow] = useState<any>(null);
 
   useEffect(() => {
     loadInitialData();
@@ -110,10 +169,11 @@ export default function ColetaPesquisa() {
       );
     } finally {
       setLoading(false);
+      loadLocalDrafts();
     }
   }
 
-  function handleStart() {
+  async function handleStart() {
     if (!selectedLocationId || !selectedSurveyId) {
       Alert.alert('Atenção', 'Selecione um local e um questionário');
       return;
@@ -125,8 +185,11 @@ export default function ColetaPesquisa() {
       Alert.alert('Erro', 'Este questionário não tem perguntas configuradas');
       return;
     }
-    
-    setAnswers({});
+
+    // Já existe um rascunho para este par? Retoma-o em vez de começar do zero
+    const draftRow = await loadDraftForRow(selectedSurveyId, selectedLocationId);
+    setActiveDraftRow(draftRow);
+    setAnswers(draftRow ? parseDraftPayload(draftRow._raw.data_payload) : {});
     setStep(2);
 
     // Solicita a localização
@@ -154,32 +217,117 @@ export default function ColetaPesquisa() {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
   }
 
-  async function handleSubmitForm() {
+  async function loadLocalDrafts() {
+    if (!database) {
+      setDrafts([]);
+      return;
+    }
+    const rows = await database.collections.get('responses')
+      .query(Q.where('is_draft', true))
+      .fetch();
+    setDrafts(rows);
+  }
+
+  async function loadDraftForRow(surveyId: string, locationId: string) {
+    if (!database) return null;
+    const rows = await database.collections.get('responses')
+      .query(
+        Q.where('survey_id', surveyId),
+        Q.where('location_id', locationId),
+        Q.where('is_draft', true)
+      )
+      .fetch();
+    return rows[0] || null;
+  }
+
+  function resumeDraft(row: any) {
+    setActiveDraftRow(row);
+    setSelectedSurveyId(row._raw.survey_id);
+    setSelectedLocationId(row._raw.location_id);
+    setAnswers(parseDraftPayload(row._raw.data_payload));
+    setStep(2);
+  }
+
+  function goToStepOne() {
+    setStep(1);
+    setAnswers({});
+    setSelectedLocationId('');
+    setSelectedSurveyId('');
+    setCurrentLocation(null);
+    setActiveDraftRow(null);
+    loadLocalDrafts();
+  }
+
+  async function handleSaveDraft() {
+    if (!database) {
+      Alert.alert('Atenção', 'Armazenamento local indisponível para salvar o rascunho');
+      return;
+    }
+    setLoading(true);
+    try {
+      await database.write(async () => {
+        if (activeDraftRow) {
+          await activeDraftRow.update((row: any) => {
+            row.dataPayload = JSON.stringify(answers);
+            row.isDraft = true;
+          });
+        } else {
+          await database.collections.get('responses').create((row: any) => {
+            row.surveyId = selectedSurveyId;
+            row.locationId = selectedLocationId;
+            row.dataPayload = JSON.stringify(answers);
+            row.isDraft = true;
+            if (currentLocation) {
+              row.latitude = currentLocation.latitude;
+              row.longitude = currentLocation.longitude;
+            }
+          });
+        }
+      });
+      Alert.alert('Rascunho salvo!', 'Rascunho salvo. Ele aparecerá na lista para retomar depois.');
+      goToStepOne();
+    } catch (error) {
+      console.error('❌ Erro ao salvar rascunho:', error);
+      Alert.alert('Erro', 'Falha ao salvar o rascunho. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleFinalize() {
     setLoading(true);
     try {
       if (database) {
-        // Salva localmente para sincronização offline
+        // Cria ou alterna a MESMA linha local para completa (is_draft=false).
+        // A linha vai para o bucket `updated` no próximo sync e o backend
+        // upserta — inclusive quando este id nunca subiu (rascunho filtrado).
         await database.write(async () => {
-          await database.collections.get('responses').create((response: any) => {
-            response.surveyId = selectedSurveyId;
-            response.locationId = selectedLocationId;
-            response.dataPayload = JSON.stringify(answers);
-            if (currentLocation) {
-              response.latitude = currentLocation.latitude;
-              response.longitude = currentLocation.longitude;
-            }
-          });
+          if (activeDraftRow) {
+            await activeDraftRow.update((row: any) => {
+              row.isDraft = false;
+              row.dataPayload = JSON.stringify(answers);
+            });
+          } else {
+            await database.collections.get('responses').create((row: any) => {
+              row.surveyId = selectedSurveyId;
+              row.locationId = selectedLocationId;
+              row.dataPayload = JSON.stringify(answers);
+              row.isDraft = false;
+              if (currentLocation) {
+                row.latitude = currentLocation.latitude;
+                row.longitude = currentLocation.longitude;
+              }
+            });
+          }
         });
-        console.log('✅ Resposta salva localmente no banco de dados');
-        
-        // Opcional: tentar enviar para a API imediatamente em background
+
+        // Envio best-effort em background (normal falhar offline)
         api.post('/responses', {
           survey_id: selectedSurveyId,
           location_id: selectedLocationId,
           answers_json: answers,
           ...(currentLocation ? { latitude: currentLocation.latitude, longitude: currentLocation.longitude } : {})
         }).catch(err => console.log('Sincronização em background falhou (normal se estiver offline)'));
-
       } else {
         // Fallback para a Web
         await api.post('/responses', {
@@ -189,19 +337,35 @@ export default function ColetaPesquisa() {
           ...(currentLocation ? { latitude: currentLocation.latitude, longitude: currentLocation.longitude } : {})
         });
       }
-      
+
       Alert.alert('Sucesso!', 'Questionário salvo com sucesso');
-      setStep(1);
-      setAnswers({});
-      setSelectedLocationId('');
-      setSelectedSurveyId('');
-      setCurrentLocation(null);
+      goToStepOne();
     } catch (error) {
       console.error(error);
       Alert.alert('Erro', 'Falha ao salvar o questionário. Tente novamente.');
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleSubmitForm() {
+    const unanswered = findUnansweredQuestions(activeSurvey, answers);
+
+    // Com pergunta faltando: avisa exatamente quais e NÃO envia nada; o
+    // "Fechar mesmo assim" apenas salva um rascunho preservando o trabalho.
+    if (unanswered.length > 0) {
+      Alert.alert(
+        'Perguntas sem resposta',
+        `As seguintes perguntas não foram respondidas:\n\n${unanswered.map((label) => `• ${label}`).join('\n')}`,
+        [
+          { text: 'Continuar respondendo', style: 'cancel' },
+          { text: 'Fechar mesmo assim', onPress: () => { handleSaveDraft(); } },
+        ]
+      );
+      return;
+    }
+
+    handleFinalize();
   }
 
   const activeSurvey = surveys.find(s => s.id === selectedSurveyId);
@@ -364,6 +528,32 @@ export default function ColetaPesquisa() {
           >
             <Text style={styles.btnText}>Começar Coleta →</Text>
           </TouchableOpacity>
+
+          {/* Rascunhos locais para retomar */}
+          <View style={[styles.section, styles.draftsSection]}>
+            <Text style={styles.label}>📝 Rascunhos salvos</Text>
+            {drafts.length === 0 ? (
+              <Text style={styles.draftsEmpty}>Nenhum rascunho salvo ainda.</Text>
+            ) : (
+              drafts.map((row) => {
+                const draft = toDraftView(row);
+                const surveyTitle = surveys.find(s => s.id === draft.survey_id)?.title || 'Questionário';
+                const locationName = locations.find(l => l.id === draft.location_id)?.name || 'Local';
+                return (
+                  <TouchableOpacity
+                    key={draft.id}
+                    style={styles.draftItem}
+                    onPress={() => resumeDraft(row)}
+                  >
+                    <Text style={styles.draftTitle}>{surveyTitle}</Text>
+                    <Text style={styles.draftSubtitle}>
+                      {locationName} · {formatDraftDate(draft.created_at)}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })
+            )}
+          </View>
         </View>
       ) : (
         <View style={styles.content}>
@@ -398,6 +588,14 @@ export default function ColetaPesquisa() {
             <Text style={styles.btnText}>
               {loading ? '⏳ Enviando...' : '✓ Enviar Questionário'}
             </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.btn, styles.btnDraft, loading && styles.btnDisabled]}
+            onPress={handleSaveDraft}
+            disabled={loading}
+          >
+            <Text style={styles.btnDraftText}>💾 Salvar rascunho</Text>
           </TouchableOpacity>
 
           <View style={{ height: 20 }} />
@@ -863,5 +1061,47 @@ const styles = StyleSheet.create({
   },
   btnDisabled: {
     opacity: 0.6,
+  },
+  btnDraft: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    marginTop: 8,
+  },
+  btnDraftText: {
+    color: '#0f172a',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  draftsSection: {
+    marginTop: 28,
+  },
+  draftsEmpty: {
+    fontSize: 14,
+    color: '#94a3b8',
+    fontStyle: 'italic',
+  },
+  draftItem: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  draftTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#0f172a',
+    marginBottom: 4,
+  },
+  draftSubtitle: {
+    fontSize: 13,
+    color: '#64748b',
   },
 });

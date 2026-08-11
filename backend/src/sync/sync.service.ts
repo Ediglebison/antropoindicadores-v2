@@ -66,8 +66,8 @@ export class SyncService {
     const formatUser = (u: any) => ({
       id: u.id,
       name: u.name,
-      access_code: u.access_code,
-      password_hash: u.password_hash,
+      // password_hash e access_code ficam de fora de propósito: esta rota é
+      // anônima e enviá-los vazaria as credenciais de todos os usuários
       role: u.role,
       created_at: new Date(u.created_at).getTime(),
       // Assume created_at as updated_at for now since user entity doesn't have updated_at
@@ -157,14 +157,21 @@ export class SyncService {
     const responsesChanges = changes.responses;
 
     if (responsesChanges) {
-      // Função para traduzir as datas do formato numérico do celular para o Banco de Dados
-      const formatarResposta = (resp: any) => {
-        return {
-          ...resp,
-          created_at: new Date(resp.created_at),
-          updated_at: new Date(resp.updated_at),
-        };
-      };
+      // Traduz as datas do formato numérico do celular para o Banco de Dados.
+      // Whitelist explícita: só os campos que o mobile envia legitimamente
+      // chegam ao repositorio; qualquer outro campo do cliente (researcher_id,
+      // is_draft, extras) é descartado — a identidade do pesquisador nunca pode
+      // ser forjada pelo push.
+      const formatarResposta = (resp: any) => ({
+        id: resp.id,
+        survey_id: resp.survey_id,
+        location_id: resp.location_id,
+        latitude: resp.latitude,
+        longitude: resp.longitude,
+        data_payload: resp.data_payload,
+        created_at: new Date(resp.created_at),
+        updated_at: new Date(resp.updated_at),
+      });
 
       // A. Salva as novas coletas (criadas no mato)
       if (responsesChanges.created.length > 0) {
@@ -172,12 +179,13 @@ export class SyncService {
         await this.responseRepository.save(novasRespostas);
       }
 
-      // B. Atualiza as coletas editadas (se o app permitir edição offline)
+      // B. Upserta as coletas editadas. `save` insere quando o id ainda não
+      // existe (rascunho finalizado que nunca subiu: o push o filtrou mas o
+      // WatermelonDB o marcou como sincronizado mesmo assim) e atualiza quando
+      // a linha já existe — um UPDATE puro seria um no-op em id nunca inserido.
       if (responsesChanges.updated.length > 0) {
         const editadas = responsesChanges.updated.map(formatarResposta);
-        for (const resp of editadas) {
-          await this.responseRepository.update(resp.id, resp);
-        }
+        await this.responseRepository.save(editadas);
       }
 
       // C. Deleta as excluídas offline

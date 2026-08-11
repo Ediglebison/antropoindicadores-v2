@@ -8,6 +8,13 @@ import { useMenu } from '../src/context/MenuContext';
 import SideMenu from './side-menu';
 import { Header } from '../src/components/Header';
 
+// Rascunhos (is_draft=true) nunca contam como conclusão. Rows sem o campo
+// (legado local, ou respostas vindas do backend que não têm is_draft) contam
+// como completas — `!isDraft` cobre false e undefined.
+export function countCompletedResponses(responses: any[]): number {
+  return responses.filter((resp) => !resp.isDraft).length;
+}
+
 export default function DashboardScreen() {
   const router = useRouter();
   const { openMenu } = useMenu();
@@ -43,7 +50,7 @@ export default function DashboardScreen() {
         ]);
         
         setStats({
-          totalColetas: resps.length,
+          totalColetas: countCompletedResponses(resps),
           totalLocais: locs.length,
           totalQuestionarios: surs.length,
         });
@@ -55,7 +62,7 @@ export default function DashboardScreen() {
         ]);
 
         setStats({
-          totalColetas: respRes.data?.length || 0,
+          totalColetas: countCompletedResponses(respRes.data || []),
           totalLocais: locRes.data?.length || 0,
           totalQuestionarios: surRes.data?.length || 0,
         });

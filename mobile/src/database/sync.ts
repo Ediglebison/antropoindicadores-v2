@@ -1,9 +1,32 @@
 import { synchronize } from '@nozbe/watermelondb/sync';
+import type { SyncDatabaseChangeSet, SyncTableChangeSet } from '@nozbe/watermelondb/sync';
 import { database } from './index';
 import { Storage } from '../utils/storage';
 
 // Lê a URL do arquivo .env
 const BACKEND_URL = process.env.EXPO_PUBLIC_API_URL;
+
+// Rascunhos (is_draft=true) são locais e nunca devem alcançar o servidor.
+// O campo is_draft chega cru no registro de push; se ausente/undefined, é uma resposta completa.
+export function isDraftSkippable(record: { is_draft?: boolean }): boolean {
+  return record.is_draft === true;
+}
+
+function filterDraftResponses(changes: SyncDatabaseChangeSet): SyncDatabaseChangeSet {
+  const responseChanges: { responses?: SyncTableChangeSet } = changes;
+  if (!responseChanges.responses) {
+    return changes;
+  }
+
+  return {
+    ...changes,
+    responses: {
+      ...responseChanges.responses,
+      created: responseChanges.responses.created.filter((record) => !isDraftSkippable(record)),
+      updated: responseChanges.responses.updated.filter((record) => !isDraftSkippable(record)),
+    },
+  };
+}
 
 export async function syncData(onProgress?: (status: string, progressValue?: number) => void) {
   // Verificar se o database está disponível (só em plataformas nativas)
@@ -41,6 +64,8 @@ export async function syncData(onProgress?: (status: string, progressValue?: num
         if (onProgress) onProgress('Enviando dados para o servidor...', 70);
         const timestamp = lastPulledAt || 0;
         
+        const completeChanges = filterDraftResponses(changes);
+        
         // ADICIONE ESTA LINHA PARA TESTE:
         console.log("🔥 TENTANDO BATER NA URL:", `${BACKEND_URL}/sync?lastPulledAt=${timestamp}`);
         
@@ -50,7 +75,7 @@ export async function syncData(onProgress?: (status: string, progressValue?: num
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}` 
           },
-          body: JSON.stringify({ changes, lastPulledAt }),
+          body: JSON.stringify({ changes: completeChanges, lastPulledAt }),
         });
 
         if (!response.ok) {

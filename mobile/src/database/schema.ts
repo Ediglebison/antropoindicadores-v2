@@ -1,7 +1,7 @@
 import { appSchema, tableSchema } from '@nozbe/watermelondb'
 
 export const mySchema = appSchema({
-  version: 4, // Incremented version to force database recreation with users table
+  version: 5, // Migrado por migrations.ts (adiciona is_draft em responses)
   tables: [
     // TABELA 1: Os Questionários (Templates)
     tableSchema({
@@ -39,6 +39,7 @@ export const mySchema = appSchema({
         { name: 'latitude', type: 'number', isOptional: true },
         { name: 'longitude', type: 'number', isOptional: true },
         { name: 'data_payload', type: 'string' }, 
+        { name: 'is_draft', type: 'boolean', isOptional: true },
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ]

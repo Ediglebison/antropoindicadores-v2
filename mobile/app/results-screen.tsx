@@ -12,7 +12,8 @@ import {
   ScrollView
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { responsesAPI } from '../src/services/api';
+import { Q } from '@nozbe/watermelondb';
+import { responsesAPI, api } from '../src/services/api';
 import { database } from '../src/database';
 import SideMenu from './side-menu';
 import { Header } from '../src/components/Header';
@@ -20,15 +21,89 @@ import { Header } from '../src/components/Header';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 
+// data_payload chega como string (banco local) ou objeto (API). A guarda
+// devolve {} para ausente/inválido, então a exportação nunca quebra.
+export function parsePayload(raw: any): Record<string, any> {
+  if (raw === undefined || raw === null || raw === '') {
+    return {};
+  }
+  try {
+    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch (error) {
+    console.error('Erro ao ler data_payload da resposta:', error);
+    return {};
+  }
+}
+
+// Célula CSV blindada: aspas duplicadas, quebra de linha achatada e injeção de
+// fórmula neutralizada — mesma convenção do escapeCSV do web (paridade F4/F6).
+function escapeCell(value: any): string {
+  const text = String(value);
+  const neutralized = /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
+  return `"${neutralized.replace(/"/g, '""').replace(/\n/g, ' ')}"`;
+}
+
+// Colunas derivadas do questions_schema do questionário selecionado: a linha
+// 1 são os títulos das perguntas (uma por coluna); cada linha seguinte é uma
+// resposta com os valores alinhados às colunas. BOM + ponto-e-vírgula e o
+// escaping seguem a convenção do exportToCSV do web.
+export function buildColumnarExportResults(responses: any[], selectedSurvey: any): string {
+  const questions = selectedSurvey?.questions_schema;
+  if (!Array.isArray(questions) || questions.length === 0) {
+    return '';
+  }
+
+  const header = questions.map((question: any) =>
+    escapeCell(question.label || `Pergunta (ID: ${question.id})`)
+  ).join(';');
+
+  const rows = responses.map((response) => {
+    const payload = parsePayload(response.data_payload);
+    return questions.map((question: any) => {
+      let value = payload[question.id];
+      if (question.type === 'boolean') {
+        value = value ? 'Sim' : 'Não';
+      }
+      return escapeCell(value !== undefined && value !== null ? value : 'Não respondido');
+    }).join(';');
+  });
+
+  return '\uFEFF' + [header, ...rows].join('\n');
+}
+
+// Rows legadas (criadas antes da coluna is_draft) têm is_draft = NULL. Um
+// Q.where('is_draft', false) puro compila para `is 0`, que exclui NULL no SQL
+// (semântica `is`), silenciosamente descartando as completas legadas. Por isso
+// a composição é `or(false, null)` → `(is 0 or is null)`.
+export async function loadCompletasLocais(): Promise<any[]> {
+  if (!database) return [];
+  return database.collections.get('responses')
+    .query(
+      Q.or(
+        Q.where('is_draft', false),
+        Q.where('is_draft', null),
+      )
+    )
+    .fetch();
+}
+
 export default function ResultsScreen() {
   const router = useRouter();
   const [resultados, setResultados] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [surveys, setSurveys] = useState<any[]>([]);
+  const [locations, setLocations] = useState<any[]>([]);
+  const [selectedSurveyId, setSelectedSurveyId] = useState<string>('');
+  const [selectedLocationId, setSelectedLocationId] = useState<string>('');
+  const [showSurveyModal, setShowSurveyModal] = useState(false);
+  const [showLocationModal, setShowLocationModal] = useState(false);
 
   useEffect(() => {
     loadResultados();
+    loadSelectorData();
   }, []);
 
   async function loadResultados() {
@@ -63,60 +138,97 @@ export default function ResultsScreen() {
     }
   }
 
+  async function loadSelectorData() {
+    try {
+      if (database) {
+        const [locs, surs] = await Promise.all([
+          database.collections.get('locations').query().fetch(),
+          database.collections.get('surveys').query().fetch(),
+        ]);
+        setLocations(locs.map((l: any) => ({
+          id: l.id,
+          name: l.name,
+          unique_code: l._raw.unique_code,
+        })));
+        setSurveys(surs.map((s: any) => {
+          let parsedSchema: any[] = [];
+          if (s._raw.questions_schema) {
+            try {
+              parsedSchema = typeof s._raw.questions_schema === 'string'
+                ? JSON.parse(s._raw.questions_schema)
+                : s._raw.questions_schema;
+            } catch (error) {
+              console.log('Error parsing questions_schema:', error);
+            }
+          }
+          return { id: s.id, title: s.title, questions_schema: parsedSchema };
+        }));
+      } else {
+        const [locRes, surRes] = await Promise.all([
+          api.get('/locations'),
+          api.get('/surveys'),
+        ]);
+        setLocations(locRes.data || []);
+        setSurveys(surRes.data || []);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar seletores de exportação:', error);
+    }
+  }
+
   const onRefresh = () => {
     setRefreshing(true);
     loadResultados();
   };
 
-  const handleExportCSV = async () => {
-      if (!resultados || resultados.length === 0) {
-        Alert.alert('Aviso', 'Não há dados para exportar.');
+  const handleExportCSV = async (surveyId: string, locationId: string) => {
+      if (!surveyId || !locationId) {
+        Alert.alert('Aviso', 'Selecione um questionário e uma localidade para exportar.');
         return;
       }
 
       try {
-        // 1. Montamos o Cabeçalho do arquivo CSV com a etiqueta UTF-8 (\uFEFF)
-        let csvString = '\uFEFFID,Data,Questionário,Local,Pesquisador,Respostas\n';
+        const selectedSurvey = surveys.find((survey) => survey.id === surveyId);
+        if (!selectedSurvey ||
+            !Array.isArray(selectedSurvey.questions_schema) ||
+            selectedSurvey.questions_schema.length === 0) {
+          Alert.alert('Aviso', 'O questionário selecionado não tem perguntas configuradas.');
+          return;
+        }
 
-        // 2. Varremos todos os itens da lista para criar as linhas
-        resultados.forEach((item: any) => {
-          const id = item.id || '';
-          const data = formatarData(item.collected_at || item.created_at);
-          const questionario = item.survey?.title || 'Sem Nome';
-          const local = item.location?.name || 'Não Informado';
-          const pesquisador = item.researcher?.name || 'Admin';
-          
-          // Aqui usamos a sua própria função de formatação para deixar as respostas legíveis!
-          // Vai ficar algo como: "Q1: Teste | Q2: 5 | Q3: 123"
-          const respostasArray = getRespostasFormatadas(item);
-          const respostasTexto = respostasArray.map((r: any) => `${r.label}: ${r.valor}`).join(' | ');
+        let completeResponses: any[] = [];
+        if (database) {
+          const rows = await loadCompletasLocais();
+          completeResponses = rows
+            .filter((row) => row._raw.survey_id === surveyId && row._raw.location_id === locationId)
+            .map((row) => ({
+              id: row.id,
+              data_payload: row._raw.data_payload,
+            }));
+        } else {
+          completeResponses = (resultados || [])
+            .filter((resp) => resp.survey_id === surveyId && resp.location_id === locationId)
+            .map((resp) => ({
+              id: resp.id,
+              data_payload: resp.data_payload,
+            }));
+        }
 
-          // Colocamos aspas duplas em volta de cada texto. 
-          // Isso impede que uma vírgula escrita pelo usuário quebre a coluna do CSV.
-          const linha = [
-            `"${id}"`,
-            `"${data}"`,
-            `"${questionario}"`,
-            `"${local}"`,
-            `"${pesquisador}"`,
-            `"${respostasTexto}"`
-          ].join(',');
+        if (completeResponses.length === 0) {
+          Alert.alert('Aviso', 'Não há dados para exportar.');
+          return;
+        }
 
-          csvString += linha + '\n';
-        });
+        const csvString = buildColumnarExportResults(completeResponses, selectedSurvey);
 
-        // 3. Criamos o arquivo físico na memória temporária do celular
         const fileUri = FileSystem.documentDirectory + 'resultados_coletas.csv';
-        
-        // Removemos a configuração extra, pois o UTF-8 já é o padrão!
         await FileSystem.writeAsStringAsync(fileUri, csvString);
 
-        // 4. Chamamos a tela nativa de compartilhamento do iOS/Android
         if (await Sharing.isAvailableAsync()) {
           await Sharing.shareAsync(fileUri, {
             mimeType: 'text/csv',
             dialogTitle: 'Exportar Resultados',
-            UTI: 'public.comma-separated-values-text' // Necessário para o iOS reconhecer o formato
+            UTI: 'public.comma-separated-values-text'
           });
         } else {
           Alert.alert('Ops!', 'O compartilhamento de arquivos não está disponível neste dispositivo.');
@@ -223,9 +335,40 @@ export default function ResultsScreen() {
       <View style={styles.content}>
         <View style={styles.pageHeader}>
           <Text style={styles.pageTitle}>Histórico de Coletas</Text>
-          <TouchableOpacity style={styles.exportBtn} onPress={handleExportCSV}>
+          <TouchableOpacity
+            style={styles.exportBtn}
+            onPress={() => handleExportCSV(selectedSurveyId, selectedLocationId)}
+          >
             <Text style={styles.exportBtnIcon}>📥</Text>
             <Text style={styles.exportBtnText}>CSV</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.exportSection}>
+          <Text style={styles.exportSectionLabel}>Exportar CSV colunar</Text>
+
+          <TouchableOpacity
+            style={styles.dropdownButton}
+            onPress={() => setShowLocationModal(true)}
+          >
+            <Text style={styles.dropdownButtonText}>
+              {selectedLocationId
+                ? locations.find((location) => location.id === selectedLocationId)?.name
+                : 'Selecione um local...'}
+            </Text>
+            <Text style={styles.dropdownArrow}>▼</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.dropdownButton}
+            onPress={() => setShowSurveyModal(true)}
+          >
+            <Text style={styles.dropdownButtonText}>
+              {selectedSurveyId
+                ? surveys.find((survey) => survey.id === selectedSurveyId)?.title
+                : 'Selecione um questionário...'}
+            </Text>
+            <Text style={styles.dropdownArrow}>▼</Text>
           </TouchableOpacity>
         </View>
 
@@ -252,6 +395,66 @@ export default function ResultsScreen() {
           />
         )}
       </View>
+
+      <Modal
+        visible={showLocationModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowLocationModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, styles.selectorModal]}>
+            <Text style={styles.modalTitle}>Selecione um Local</Text>
+            <FlatList
+              data={locations}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.modalItem}
+                  onPress={() => {
+                    setSelectedLocationId(item.id);
+                    setShowLocationModal(false);
+                  }}
+                >
+                  <Text style={styles.modalItemText}>
+                    {item.name} ({item.unique_code})
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={showSurveyModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowSurveyModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, styles.selectorModal]}>
+            <Text style={styles.modalTitle}>Selecione um Questionário</Text>
+            <FlatList
+              data={surveys}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.modalItem}
+                  onPress={() => {
+                    setSelectedSurveyId(item.id);
+                    setShowSurveyModal(false);
+                  }}
+                >
+                  <Text style={styles.modalItemText}>
+                    {item.title} ({(item.questions_schema || []).length} perguntas)
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
 
       <Modal
         visible={!!selectedItem}
@@ -349,6 +552,43 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: '700',
     fontSize: 13
+  },
+  exportSection: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    padding: 16,
+    marginBottom: 16
+  },
+  exportSectionLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0f172a',
+    marginBottom: 12
+  },
+  dropdownButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: 12,
+    backgroundColor: '#ffffff',
+    marginBottom: 12
+  },
+  dropdownButtonText: {
+    fontSize: 15,
+    color: '#334155',
+    flex: 1
+  },
+  dropdownArrow: {
+    color: '#64748b',
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginLeft: 8
   },
   listContainer: {
     paddingBottom: 24
@@ -460,6 +700,9 @@ const styles = StyleSheet.create({
     shadowRadius: 24, 
     elevation: 10 
   },
+  selectorModal: { 
+    paddingTop: 20 
+  },
   modalHeader: { 
     flexDirection: 'row', 
     justifyContent: 'space-between', 
@@ -469,7 +712,17 @@ const styles = StyleSheet.create({
   modalTitle: { 
     fontSize: 18, 
     fontWeight: '800', 
-    color: '#0f172a' 
+    color: '#0f172a', 
+    marginBottom: 16 
+  },
+  modalItem: {
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9'
+  },
+  modalItemText: {
+    fontSize: 15,
+    color: '#334155'
   },
   closeBtn: { 
     padding: 6,

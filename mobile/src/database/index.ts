@@ -10,6 +10,7 @@ if (Platform.OS !== 'web') {
     const { Database } = require('@nozbe/watermelondb')
     const SQLiteAdapter = require('@nozbe/watermelondb/adapters/sqlite').default
     const { mySchema } = require('./schema')
+    const { myMigrations } = require('./migrations')
     const Survey = require('./models/Survey').default
     const Location = require('./models/Locations').default
     const Response = require('./models/Response').default
@@ -18,6 +19,7 @@ if (Platform.OS !== 'web') {
     // Configura o "Adaptador" que vai escrever fisicamente no celular
     const adapter = new SQLiteAdapter({
       schema: mySchema,
+      migrations: myMigrations,
       // JSI (JavaScript Interface) é o segredo da velocidade absurda do WatermelonDB
       jsi: false, 
       onSetUpError: (error: any) => {

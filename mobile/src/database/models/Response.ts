@@ -21,6 +21,9 @@ export default class Response extends Model {
   @field('data_payload') 
   dataPayload!: string
 
+  @field('is_draft')
+  isDraft!: boolean
+
   @readonly @date('created_at') 
   createdAt!: Date
 
