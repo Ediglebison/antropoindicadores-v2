@@ -26,7 +26,7 @@ export class Draft {
   researcher_id: string;
 
   @Column({ type: 'jsonb' })
-  data_payload: Record<string, unknown>;
+  data_payload: any;
 
   @CreateDateColumn()
   created_at: Date;

@@ -90,7 +90,12 @@ describe('AuthController', () => {
   describe('me', () => {
     it('should return authenticated user data', async () => {
       const req = { user: { userId: '1', username: 'USER1', role: 'ADMIN' } };
-      const mockUser = { id: '1', name: 'User One', access_code: 'USER1', role: 'ADMIN' };
+      const mockUser = {
+        id: '1',
+        name: 'User One',
+        access_code: 'USER1',
+        role: 'ADMIN',
+      };
 
       mockAuthService.findMe.mockResolvedValue(mockUser);
 

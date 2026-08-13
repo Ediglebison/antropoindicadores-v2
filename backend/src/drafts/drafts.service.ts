@@ -55,9 +55,14 @@ export class DraftsService {
     researcherId: string,
     updateDraftDto: UpdateDraftDto,
   ): Promise<Draft> {
+    const updateFields: Partial<Draft> = {
+      location_id: updateDraftDto.location_id,
+      data_payload: updateDraftDto.data_payload,
+    };
+
     await this.draftsRepository.update(
       { id, researcher_id: researcherId },
-      updateDraftDto,
+      updateFields,
     );
     return this.findOneForResearcher(id, researcherId);
   }
