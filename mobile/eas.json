@@ -22,13 +22,15 @@
       }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://antropoindicadores-api-2026.fly.dev"
+      }
     }
   },
   "submit": {
     "production": {
-      "android": { "track": "internal" },
-      "ios": { "ascAppId": "your-app-id", "appleTeamId": "your-team-id" }
+      "android": { "track": "internal" }
     }
   }
 }

@@ -1,28 +1,14 @@
 import { Model } from '@nozbe/watermelondb'
-import { field, text, readonly, date } from '@nozbe/watermelondb/decorators'
+import { text, readonly, date } from '@nozbe/watermelondb/decorators'
 
 export default class Location extends Model {
-  // Conecta este modelo à tabela 'locations' do schema
   static table = 'locations'
 
-  @text('name') 
-  name!: string
-
-  @text('unique_code')
-  uniqueCode?: string
-
-  @text('city')
-  city?: string
-
-  @text('state')
-  state?: string
-
-  @text('description')
-  description?: string
-
-  @readonly @date('created_at') 
-  createdAt!: Date
-
-  @readonly @date('updated_at') 
-  updatedAt!: Date
+  @text('name') declare name: string
+  @text('unique_code') declare uniqueCode: string | undefined
+  @text('city') declare city: string | undefined
+  @text('state') declare state: string | undefined
+  @text('description') declare description: string | undefined
+  @readonly @date('created_at') declare createdAt: Date
+  @readonly @date('updated_at') declare updatedAt: Date
 }

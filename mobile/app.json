@@ -2,7 +2,7 @@
   "expo": {
     "name": "AntropoMobile",
     "slug": "mobile",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "mobile",
@@ -53,11 +53,17 @@
         }
       ],
       "expo-secure-store",
-      "expo-router"
+      "expo-router",
+      "expo-font",
+      "expo-image",
+      "expo-sharing",
+      "expo-splash-screen",
+      "expo-status-bar",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
-      "reactCompiler": true
+      "reactCompiler": false
     },
     "extra": {
       "router": {},

@@ -81,7 +81,7 @@ describe('AuthService', () => {
   });
 
   describe('login', () => {
-    it('should set cookie and return user info (no access_token in body)', async () => {
+    it('should set cookie and return user info with access_token in body', async () => {
       const mockUser = {
         id: '1',
         name: 'Test User',
@@ -111,6 +111,7 @@ describe('AuthService', () => {
         }),
       );
       expect(result).toEqual({
+        access_token: 'mock-jwt-token',
         user: {
           id: '1',
           name: 'Test User',
@@ -118,7 +119,7 @@ describe('AuthService', () => {
           role: 'ADMIN',
         },
       });
-      expect((result as any).access_token).toBeUndefined();
+      expect(result.access_token).toBe('mock-jwt-token');
     });
   });
 });
