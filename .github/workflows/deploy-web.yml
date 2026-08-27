@@ -14,6 +14,7 @@ jobs:
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       
@@ -23,16 +24,24 @@ jobs:
           node-version: 24.x
           
       - name: Install Vercel CLI
-        run: npm install --global vercel@latest
-        
+        run: npm install --global vercel@59
+
+      - name: Verify Vercel secrets
+        run: |
+          missing=0
+          if [ -z "$VERCEL_TOKEN" ]; then echo "::error::VERCEL_TOKEN is not set"; missing=1; fi
+          if [ -z "$VERCEL_ORG_ID" ]; then echo "::error::VERCEL_ORG_ID is not set"; missing=1; fi
+          if [ -z "$VERCEL_PROJECT_ID" ]; then echo "::error::VERCEL_PROJECT_ID is not set"; missing=1; fi
+          if [ "$missing" -ne 0 ]; then exit 1; fi
+
+      - name: Link Vercel Project
+        run: rm -rf .vercel && vercel link --yes --token=${{ secrets.VERCEL_TOKEN }}
+
       - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: ./web
-        
+
       - name: Build Project Artifacts
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: ./web
-        
+
       - name: Deploy Project Artifacts to Vercel
         run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: ./web
