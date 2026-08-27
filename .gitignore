@@ -11,14 +11,11 @@ coverage/
 .vercel/
 .expo/
 web-build/
-.memory/
 dist-ssr/
 .nyc_output/
 playwright-report/
 test-results/
 docs/
-.ignore
-opencode.json
 .env*
 antropo_db_backup.sql
 *.log
@@ -41,4 +38,7 @@ desktop.ini
 *.local
 **/.context.md
 relatorio-pentest-antropoindicadores.md
-.todo.md
+.todo.md.agents/
+.memory/
+opencode.json
+.ignore
