@@ -38,7 +38,8 @@ desktop.ini
 *.local
 **/.context.md
 relatorio-pentest-antropoindicadores.md
-.todo.md.agents/
+.todo.md
+.agents/
 .memory/
 opencode.json
 .ignore
