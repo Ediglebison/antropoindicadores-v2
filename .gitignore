@@ -8,7 +8,6 @@ pg_data/
 .agents
 .agents/
 coverage/
-.vercel/
 .expo/
 web-build/
 dist-ssr/
@@ -21,6 +20,7 @@ antropo_db_backup.sql
 *.log
 Thumbs.db
 desktop.ini
+*.pdf
 *.sw?
 *.suo
 *.ntvs*
@@ -43,3 +43,4 @@ relatorio-pentest-antropoindicadores.md
 .memory/
 opencode.json
 .ignore
+.vercel
