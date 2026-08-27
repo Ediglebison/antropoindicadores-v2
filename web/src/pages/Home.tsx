@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Leaf, ClipboardList, BarChart3, Landmark, ArrowRight } from 'lucide-react';
-import logoImg from '../../assets/ppgeaa_ia.png';
-import './styles.css';
+import logoImg from '../assets/ppgeaa_ia.png';
+import './Home/styles.css';
 
 export default function Home() {
   return (
