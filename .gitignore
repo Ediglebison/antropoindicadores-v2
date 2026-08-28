@@ -44,3 +44,7 @@ relatorio-pentest-antropoindicadores.md
 opencode.json
 .ignore
 .vercel
+.agents/
+.memory/
+opencode.json
+.ignore
