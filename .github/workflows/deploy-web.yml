@@ -34,9 +34,6 @@ jobs:
           if [ -z "$VERCEL_PROJECT_ID" ]; then echo "::error::VERCEL_PROJECT_ID is not set"; missing=1; fi
           if [ "$missing" -ne 0 ]; then exit 1; fi
 
-      - name: Link Vercel Project
-        run: vercel link --yes --org=${{ secrets.VERCEL_ORG_ID }} --project=${{ secrets.VERCEL_PROJECT_ID }} --token=${{ secrets.VERCEL_TOKEN }}
-
       - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
