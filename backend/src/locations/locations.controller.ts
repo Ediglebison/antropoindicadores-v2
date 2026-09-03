@@ -13,6 +13,8 @@ import { LocationsService } from './locations.service';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { UserRole } from '../users/user.entity';
+import { CreateLocationDto } from './dto/create-location.dto';
+import { UpdateLocationDto } from './dto/update-location.dto';
 
 @Controller('locations')
 @UseGuards(RolesGuard)
@@ -21,8 +23,8 @@ export class LocationsController {
 
   @Roles(UserRole.ADMIN)
   @Post()
-  create(@Body() body: any) {
-    return this.locationsService.create(body);
+  create(@Body() createLocationDto: CreateLocationDto) {
+    return this.locationsService.create(createLocationDto);
   }
 
   @Roles(UserRole.ADMIN, UserRole.RESEARCHER)
@@ -33,14 +35,20 @@ export class LocationsController {
 
   @Roles(UserRole.ADMIN)
   @Put(':id')
-  update(@Param('id') id: string, @Body() body: any) {
-    return this.locationsService.update(id, body);
+  update(
+    @Param('id') id: string,
+    @Body() updateLocationDto: UpdateLocationDto,
+  ) {
+    return this.locationsService.update(id, updateLocationDto);
   }
 
   @Roles(UserRole.ADMIN)
   @Patch(':id')
-  patch(@Param('id') id: string, @Body() body: any) {
-    return this.locationsService.update(id, body);
+  patch(
+    @Param('id') id: string,
+    @Body() updateLocationDto: UpdateLocationDto,
+  ) {
+    return this.locationsService.update(id, updateLocationDto);
   }
 
   @Roles(UserRole.ADMIN)

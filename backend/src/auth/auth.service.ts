@@ -16,13 +16,19 @@ export class AuthService {
     return this.usersService.findOneById(userId);
   }
 
+  private static readonly DUMMY_HASH =
+    '$2b$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ012';
+
   async validateUser(
     access_code: string,
     pass: string,
   ): Promise<Partial<User> | null> {
     const user = await this.usersService.findOneByCode(access_code);
 
-    if (user && (await bcrypt.compare(pass, user.password_hash))) {
+    const hashToCompare = user?.password_hash ?? AuthService.DUMMY_HASH;
+    const isValid = await bcrypt.compare(pass, hashToCompare);
+
+    if (user && isValid) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password_hash, ...result } = user;
       return result;
