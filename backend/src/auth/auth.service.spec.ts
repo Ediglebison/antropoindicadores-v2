@@ -76,7 +76,10 @@ describe('AuthService', () => {
       const result = await service.validateUser('USER1', 'password');
 
       expect(result).toBeNull();
-      expect(bcrypt.compare).not.toHaveBeenCalled();
+      expect(bcrypt.compare).toHaveBeenCalledWith(
+        'password',
+        AuthService.DUMMY_HASH,
+      );
     });
   });
 
