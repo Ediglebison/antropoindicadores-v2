@@ -35,7 +35,7 @@ jobs:
           if [ "$missing" -ne 0 ]; then exit 1; fi
 
       - name: Link Vercel Project
-        run: vercel link --yes --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel link --yes --project=${{ secrets.VERCEL_PROJECT_ID }} --team=${{ secrets.VERCEL_ORG_ID }} --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
